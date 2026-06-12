@@ -131,6 +131,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
     <div class="header-top">
       <div class="logo">Embusteros<span>SRL</span></div>
       <span id="header-back" style="font-size:26px;color:var(--blue);cursor:pointer;display:none" onclick="goBack()">← Atrás</span>
+      <span style="font-size:26px;color:var(--text3);cursor:pointer" onclick="loadData()" title="Actualizar">↻</span>
     </div>
     <div class="header-sub" id="header-sub">Cargando…</div>
   </div>
@@ -183,6 +184,12 @@ const fmtK = n => {
   return fmt(n);
 };
 
+function parseDate(val) {
+  const s = String(val);
+  if (s.includes('T') || s.includes('-')) return new Date(s);
+  const p = s.split('/');
+  return new Date(+p[2], +p[1]-1, +p[0]);
+}
 // ── DATOS ─────────────────────────────────────────────────
 let movimientos = [];
 let CARS = {};
@@ -213,9 +220,16 @@ function getRetirosBySocio() {
   return s;
 }
 
-function parseDate(str) {
-  const p = str.split('/');
-  return new Date(+p[2], +p[1]-1, +p[0]);
+function formatFecha(val) {
+  if (!val) return '';
+  const s = String(val);
+  // ISO format: 2026-01-22T03:00:00.000Z
+  if (s.includes('T') || s.includes('-')) {
+    const d = new Date(s);
+    if (!isNaN(d)) return `${d.getUTCDate()}/${d.getUTCMonth()+1}/${d.getUTCFullYear()}`;
+  }
+  // ya está en DD/MM/YYYY
+  return s;
 }
 
 // ── CARGA DESDE GOOGLE SHEETS ─────────────────────────────
@@ -229,7 +243,7 @@ async function loadData() {
     movimientos = rows
       .filter(r => r['Patente'] && r['Tipo'])
       .map(r => ({
-        fecha:   r['Fecha']       || '',
+        fecha:   formatFecha(r['Fecha'])  || '',
         tipo:    r['Tipo']        || '',
         patente: r['Patente']     || '',
         marca:   r['Marca']       || '',
