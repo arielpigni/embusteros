@@ -10,7 +10,6 @@
 <title>Embusteros SRL</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -22,7 +21,7 @@
   --amber:#f0a830;--amber-bg:#2e2010;
   --red:#e05555;--red-bg:#2e1515;
   --purple:#9b7fe8;--purple-bg:#231a38;
-  --radius:12px;--radius-sm:8px;
+  --radius:12px;
 }
 html,body{height:100%;overflow:hidden;background:var(--bg0)}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--text1)}
@@ -56,31 +55,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 .badge{font-size:20px;padding:5px 12px;border-radius:99px;font-weight:500;white-space:nowrap}
 .badge-stock{background:var(--blue-bg);color:var(--blue)}
 .badge-vendido{background:var(--green-bg);color:var(--green)}
-.car-date{font-size:22px;color:var(--text3);margin:6px 0 8px;display:flex;align-items:center;gap:4px}
+.car-date{font-size:22px;color:var(--text3);margin:4px 0;display:flex;align-items:center;gap:4px}
 .car-numbers{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-top:10px;border-top:0.5px solid var(--border)}
 .car-num-label{font-size:22px;color:var(--text2);margin-bottom:2px}
 .car-num-value{font-size:28px;font-weight:500;color:var(--text1)}
 .car-num-value.profit{color:var(--green)}
 .car-num-value.amber{color:var(--amber)}
-.back-btn{display:flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;color:var(--blue);font-size:28px;padding:0;margin-bottom:16px}
 .detail-header{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px}
 .detail-title{font-size:36px;font-weight:600;margin-bottom:2px}
-.detail-plate{font-size:24px;color:var(--text3);font-family:ui-monospace,monospace}
+.detail-plate{font-size:28px;color:var(--text1);font-family:ui-monospace,monospace}
 .result-block{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:0.5px solid var(--border)}
 .result-block:last-child{border-bottom:none}
 .result-label{font-size:26px;color:var(--text2)}
 .result-val{font-size:28px;font-weight:500;color:var(--text1)}
 .mov-item{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
-.mov-icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:24px}
-.mov-icon.compra{background:var(--blue-bg);color:var(--blue)}
-.mov-icon.venta{background:var(--green-bg);color:var(--green)}
-.mov-icon.gasto{background:var(--amber-bg);color:var(--amber)}
-.mov-icon.retiro{background:var(--purple-bg);color:var(--purple)}
-.mov-icon.reposicion{background:var(--blue-bg);color:var(--blue)}
 .mov-body{flex:1;min-width:0}
-.mov-desc{font-size:22px;color:var(--text1);white-space:normal;overflow:visible}
+.mov-desc{font-size:22px;color:var(--text1);white-space:normal}
 .mov-meta{font-size:22px;color:var(--text3);margin-top:2px}
-.mov-amount{font-size:26px;font-weight:500;text-align:right;white-space:nowrap}
+.mov-amount{font-size:22px;font-weight:500;text-align:right;white-space:nowrap;flex-shrink:0}
 .mov-amount.neg{color:var(--red)}
 .mov-amount.pos{color:var(--green)}
 .chart-wrap{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:15px 16px;margin-bottom:14px}
@@ -90,9 +82,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 .bar-track{flex:1;background:var(--bg3);border-radius:4px;height:32px;overflow:hidden}
 .bar-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-right:8px;justify-content:flex-end}
 .bar-val{font-size:20px;font-weight:500;color:#fff}
-.filter-btn{background:var(--bg2);border:0.5px solid var(--border);border-radius:99px;padding:8px 18px;font-size:24px;color:var(--text2);cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all 0.15s}
-.filter-btn:active{opacity:0.7}
-.empty{text-align:center;padding:40px 20px;color:var(--text3);font-size:28px}
+.empty{text-align:center;padding:40px 20px;color:var(--text3);font-size:28px;line-height:1.6}
 /* PIN */
 .pin-screen{position:fixed;inset:0;background:var(--bg0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;padding:32px;padding-top:calc(env(safe-area-inset-top,0px) + 32px)}
 .pin-logo{font-size:40px;font-weight:600;color:var(--text1);margin-bottom:6px}
@@ -142,7 +132,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
       <div class="logo">Embusteros<span>SRL</span></div>
       <span id="header-back" style="font-size:26px;color:var(--blue);cursor:pointer;display:none" onclick="goBack()">← Atrás</span>
     </div>
-    <div class="header-sub" id="header-sub">Resumen general</div>
+    <div class="header-sub" id="header-sub">Cargando…</div>
   </div>
   <div class="tab-bar">
     <button class="tab active" onclick="showTab('dashboard')">Dashboard</button>
@@ -153,14 +143,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 </div>
 
 <script>
-// ── CAMBIAR ESTE PIN ──────────────────────────────────────
+// ── CONFIG ────────────────────────────────────────────────
 const PIN = '10500';
+// Pegá acá la URL de tu Web App de Apps Script después de publicarla:
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyLElerFX73_c4y5lfmqE0XDxMCLccoOXQBZB5puSYjapA2UPyZrs2uyAqM2ZuEYNHQ/exec';
 // ─────────────────────────────────────────────────────────
 
+// ── PIN ───────────────────────────────────────────────────
 let pinInput = '';
 function pinPress(v) {
   document.getElementById('pin-error').textContent = '';
-  if (v === 'back') { pinInput = pinInput.slice(0, -1); updateDots(); return; }
+  if (v === 'back') { pinInput = pinInput.slice(0,-1); updateDots(); return; }
   if (pinInput.length >= PIN.length) return;
   pinInput += v;
   updateDots();
@@ -169,7 +162,7 @@ function pinPress(v) {
       if (pinInput === PIN) {
         document.getElementById('pin-screen').style.display = 'none';
         document.getElementById('app').style.display = 'flex';
-        render();
+        loadData();
       } else {
         document.getElementById('pin-error').textContent = 'PIN incorrecto';
         pinInput = ''; updateDots();
@@ -179,121 +172,92 @@ function pinPress(v) {
 }
 function updateDots() {
   for (let i = 0; i < PIN.length; i++)
-    document.getElementById('d' + i).className = 'pin-dot' + (i < pinInput.length ? ' filled' : '');
-}
-function lockApp() {
-  pinInput = ''; updateDots();
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('pin-screen').style.display = 'flex';
+    document.getElementById('d'+i).className = 'pin-dot' + (i < pinInput.length ? ' filled' : '');
 }
 
-// ── FORMATEO ──────────────────────────────────────────────
-const fmt = n => '$' + Math.round(n).toLocaleString('es-AR');
+// ── FORMATO ───────────────────────────────────────────────
+const fmt  = n => '$' + Math.round(n).toLocaleString('es-AR');
 const fmtK = n => {
-  if (Math.abs(n) >= 1000000) return (n < 0 ? '-' : '') + '$' + (Math.abs(n) / 1000000).toFixed(1) + 'M';
-  if (Math.abs(n) >= 1000) return (n < 0 ? '-' : '') + '$' + Math.round(Math.abs(n) / 1000) + 'k';
+  if (Math.abs(n) >= 1000000) return (n<0?'-':'') + '$' + (Math.abs(n)/1000000).toFixed(1) + 'M';
+  if (Math.abs(n) >= 1000)    return (n<0?'-':'') + '$' + Math.round(Math.abs(n)/1000) + 'k';
   return fmt(n);
 };
 
 // ── DATOS ─────────────────────────────────────────────────
-const movimientos = [
-  {fecha:'14/1/2026',tipo:'Compra',patente:'AD 968 FJ',marca:'Peugeot',modelo:'Partner Patagónica VTC Plus',pagado:'Fondo',valor:14696000,desc:'Compra'},
-  {fecha:'21/1/2026',tipo:'Gasto',patente:'AD 968 FJ',marca:'Peugeot',modelo:'Partner Patagónica VTC Plus',pagado:'Miguel',valor:120000,desc:'Lustrado tapizado y motor'},
-  {fecha:'21/1/2026',tipo:'Gasto',patente:'AD 968 FJ',marca:'Peugeot',modelo:'Partner Patagónica VTC Plus',pagado:'Miguel',valor:120000,desc:'Tablero'},
-  {fecha:'22/1/2026',tipo:'Compra',patente:'PGQ 236',marca:'Nissan',modelo:'Note Exclusive CVT',pagado:'Miguel',valor:7000000,desc:'Compra'},
-  {fecha:'22/1/2026',tipo:'Gasto',patente:'PGQ 236',marca:'Nissan',modelo:'Note Exclusive CVT',pagado:'Miguel',valor:350000,desc:'Portón Trasero'},
-  {fecha:'5/2/2026',tipo:'Gasto',patente:'AD 968 FJ',marca:'Peugeot',modelo:'Partner Patagónica VTC Plus',pagado:'Miguel',valor:400000,desc:'Comisión Agenciero'},
-  {fecha:'5/2/2026',tipo:'Gasto',patente:'PGQ 236',marca:'Nissan',modelo:'Note Exclusive CVT',pagado:'Miguel',valor:400000,desc:'Comisión Agenciero'},
-  {fecha:'18/2/2026',tipo:'Compra',patente:'AB 373 NH',marca:'Renault',modelo:'Duster PH2 Privilege 2.0',pagado:'Fondo',valor:14000000,desc:'Compra'},
-  {fecha:'18/2/2026',tipo:'Gasto',patente:'AB 373 NH',marca:'Renault',modelo:'Duster PH2 Privilege 2.0',pagado:'Miguel',valor:400000,desc:'Comisión Agenciero'},
-  {fecha:'26/2/2026',tipo:'Gasto',patente:'PGQ 236',marca:'Nissan',modelo:'Note Exclusive CVT',pagado:'Miguel',valor:80000,desc:'Instalación sensores'},
-  {fecha:'26/2/2026',tipo:'Gasto',patente:'PGQ 236',marca:'Nissan',modelo:'Note Exclusive CVT',pagado:'Miguel',valor:68000,desc:'Sensores'},
-  {fecha:'26/2/2026',tipo:'Gasto',patente:'PGQ 236',marca:'Nissan',modelo:'Note Exclusive CVT',pagado:'Martin',valor:79000,desc:'Cámara trasera'},
-  {fecha:'18/2/2026',tipo:'Gasto',patente:'AD 968 FJ',marca:'Peugeot',modelo:'Partner Patagónica VTC Plus',pagado:'Fondo',valor:230000,desc:'Reparación Válvula EGR'},
-  {fecha:'26/2/2026',tipo:'Venta',patente:'AD 968 FJ',marca:'Peugeot',modelo:'Partner Patagónica VTC Plus',pagado:'Fondo',valor:19000000,desc:'Daniel Concesionaria'},
-  {fecha:'26/2/2026',tipo:'Reposicion USD',patente:'AD 968 FJ',marca:'Peugeot',modelo:'Partner Patagónica VTC Plus',pagado:'Fondo',valor:14250000,desc:'Compra Dólares'},
-  {fecha:'2/3/2026',tipo:'Compra',patente:'AD 201 ZH',marca:'Renault',modelo:'Duster',pagado:'Fondo',valor:13543800,desc:'Compra'},
-  {fecha:'27/2/2026',tipo:'Retiro de Socio',patente:'AD 968 FJ',marca:'Peugeot',modelo:'Partner Patagónica VTC Plus',pagado:'Miguel',valor:1970000,desc:'Retiro ganancia'},
-  {fecha:'27/2/2026',tipo:'Retiro de Socio',patente:'AD 968 FJ',marca:'Peugeot',modelo:'Partner Patagónica VTC Plus',pagado:'Martin',valor:1330000,desc:'Retiro ganancia'},
-  {fecha:'27/2/2026',tipo:'Retiro de Socio',patente:'AD 968 FJ',marca:'Peugeot',modelo:'Partner Patagónica VTC Plus',pagado:'Ariel',valor:1330000,desc:'Retiro ganancia'},
-  {fecha:'2/3/2026',tipo:'Gasto',patente:'AD 201 ZH',marca:'Renault',modelo:'Duster',pagado:'Miguel',valor:300000,desc:'Comisión Agenciero'},
-  {fecha:'11/3/2026',tipo:'Compra',patente:'AB 774 OY',marca:'Renault',modelo:'Sandero Stepway Privilege',pagado:'Miguel',valor:12600000,desc:'Compra'},
-  {fecha:'20/3/2026',tipo:'Gasto',patente:'AD 201 ZH',marca:'Renault',modelo:'Duster',pagado:'Miguel',valor:20000,desc:'Nafta'},
-  {fecha:'20/3/2026',tipo:'Gasto',patente:'AD 201 ZH',marca:'Renault',modelo:'Duster',pagado:'Miguel',valor:200000,desc:'Pintura paragolpes'},
-  {fecha:'25/3/2026',tipo:'Compra',patente:'ONL 173',marca:'Renault',modelo:'Duster Confort Plus 1.6',pagado:'Miguel',valor:11000000,desc:'Compra'},
-  {fecha:'26/3/2026',tipo:'Gasto',patente:'PGQ 236',marca:'Nissan',modelo:'Note Exclusive CVT',pagado:'Miguel',valor:400000,desc:'Faroles'},
-  {fecha:'26/3/2026',tipo:'Gasto',patente:'PGQ 236',marca:'Nissan',modelo:'Note Exclusive CVT',pagado:'Miguel',valor:160000,desc:'Colocación Luneta'},
-  {fecha:'26/3/2026',tipo:'Gasto',patente:'PGQ 236',marca:'Nissan',modelo:'Note Exclusive CVT',pagado:'Miguel',valor:700000,desc:'Pintura 7 paños'},
-  {fecha:'26/3/2026',tipo:'Gasto',patente:'PGQ 236',marca:'Nissan',modelo:'Note Exclusive CVT',pagado:'Miguel',valor:480000,desc:'Chapa'},
-  {fecha:'27/3/2026',tipo:'Gasto',patente:'AB 774 OY',marca:'Renault',modelo:'Sandero Stepway Privilege',pagado:'Miguel',valor:300000,desc:'Comisión Agenciero'},
-  {fecha:'27/3/2026',tipo:'Gasto',patente:'ONL 173',marca:'Renault',modelo:'Duster Confort Plus 1.6',pagado:'Miguel',valor:300000,desc:'Comisión Agenciero'},
-  {fecha:'27/3/2026',tipo:'Gasto',patente:'AD 201 ZH',marca:'Renault',modelo:'Duster',pagado:'Miguel',valor:143000,desc:'Bomba de Embrague'},
-  {fecha:'31/3/2026',tipo:'Compra',patente:'MFC 977',marca:'Renault',modelo:'Duster Luxe 2.0 4x4 GNC',pagado:'Miguel',valor:12000000,desc:'Compra'},
-  {fecha:'2/4/2026',tipo:'Gasto',patente:'AB 373 NH',marca:'Renault',modelo:'Duster PH2 Privilege 2.0',pagado:'Miguel',valor:270000,desc:'Limpieza y tablero'},
-  {fecha:'2/4/2026',tipo:'Gasto',patente:'AB 774 OY',marca:'Renault',modelo:'Sandero Stepway Privilege',pagado:'Miguel',valor:270000,desc:'Limpieza y tablero'},
-  {fecha:'2/4/2026',tipo:'Gasto',patente:'PGQ 236',marca:'Nissan',modelo:'Note Exclusive CVT',pagado:'Miguel',valor:120000,desc:'Limpieza y tablero'},
-  {fecha:'13/4/2026',tipo:'Gasto',patente:'MFC 977',marca:'Renault',modelo:'Duster Luxe 2.0 4x4 GNC',pagado:'Miguel',valor:300000,desc:'Comisión Agenciero'},
-  {fecha:'22/4/2026',tipo:'Gasto',patente:'AB 774 OY',marca:'Renault',modelo:'Sandero Stepway Privilege',pagado:'Miguel',valor:125000,desc:'Óptica'},
-  {fecha:'22/4/2026',tipo:'Gasto',patente:'AB 774 OY',marca:'Renault',modelo:'Sandero Stepway Privilege',pagado:'Miguel',valor:100000,desc:'Transferencia'},
-  {fecha:'22/4/2026',tipo:'Venta',patente:'AB 774 OY',marca:'Renault',modelo:'Sandero Stepway Privilege',pagado:'Fondo',valor:14700000,desc:'Daniel Concesionaria'},
-  {fecha:'22/4/2026',tipo:'Retiro de Socio',patente:'AB 774 OY',marca:'Renault',modelo:'Sandero Stepway Privilege',pagado:'Miguel',valor:1230000,desc:'Retiro ganancia'},
-  {fecha:'22/4/2026',tipo:'Retiro de Socio',patente:'AB 774 OY',marca:'Renault',modelo:'Sandero Stepway Privilege',pagado:'Martin',valor:435000,desc:'Retiro ganancia'},
-  {fecha:'22/4/2026',tipo:'Retiro de Socio',patente:'AB 774 OY',marca:'Renault',modelo:'Sandero Stepway Privilege',pagado:'Ariel',valor:435000,desc:'Retiro ganancia'},
-  {fecha:'22/4/2026',tipo:'Compra',patente:'AB 481 FH',marca:'Renault',modelo:'Sandero Stepway',pagado:'Fondo',valor:13000000,desc:'Compra'},
-  {fecha:'7/5/2026',tipo:'Gasto',patente:'AB 481 FH',marca:'Renault',modelo:'Sandero Stepway',pagado:'Fondo',valor:300000,desc:'Comisión Agenciero'},
-  {fecha:'7/5/2026',tipo:'Gasto',patente:'AB 481 FH',marca:'Renault',modelo:'Sandero Stepway',pagado:'Fondo',valor:200000,desc:'Lustrado'},
-  {fecha:'20/5/2026',tipo:'Compra',patente:'AB 507 MD',marca:'Renault',modelo:'Sandero Stepway Privilege',pagado:'Fondo',valor:12500000,desc:'Compra'},
-  {fecha:'20/5/2026',tipo:'Gasto',patente:'AB 507 MD',marca:'Renault',modelo:'Sandero Stepway Privilege',pagado:'Fondo',valor:78000,desc:'Faro trasero derecho'},
-  {fecha:'20/5/2026',tipo:'Venta',patente:'AB 373 NH',marca:'Renault',modelo:'Duster PH2 Privilege 2.0',pagado:'Fondo',valor:18000000,desc:'Daniel Concesionaria'},
-  {fecha:'20/5/2026',tipo:'Gasto',patente:'AB 373 NH',marca:'Renault',modelo:'Duster PH2 Privilege 2.0',pagado:'Fondo',valor:40000,desc:'Lavado de Motor'},
-  {fecha:'20/5/2026',tipo:'Gasto',patente:'AB 373 NH',marca:'Renault',modelo:'Duster PH2 Privilege 2.0',pagado:'Fondo',valor:90000,desc:'Batería'},
-  {fecha:'20/5/2026',tipo:'Retiro de Socio',patente:'AB 373 NH',marca:'Renault',modelo:'Duster PH2 Privilege 2.0',pagado:'Miguel',valor:1067000,desc:'Retiro ganancia'},
-  {fecha:'20/5/2026',tipo:'Retiro de Socio',patente:'AB 373 NH',marca:'Renault',modelo:'Duster PH2 Privilege 2.0',pagado:'Martin',valor:1067000,desc:'Retiro ganancia'},
-  {fecha:'20/5/2026',tipo:'Retiro de Socio',patente:'AB 373 NH',marca:'Renault',modelo:'Duster PH2 Privilege 2.0',pagado:'Ariel',valor:1067000,desc:'Retiro ganancia'},
-  {fecha:'3/6/2026',tipo:'Gasto',patente:'AB 507 MD',marca:'Renault',modelo:'Sandero Stepway Privilege',pagado:'Fondo',valor:180000,desc:'Múltiple Admisión y Electroventilador'},
-  {fecha:'3/6/2026',tipo:'Compra',patente:'AC 531 JR',marca:'Renault',modelo:'Kangoo PH3 Confort GNC',pagado:'Fondo',valor:10000000,desc:'Compra'},
-  {fecha:'10/6/2026',tipo:'Compra',patente:'KXZ 865',marca:'Peugeot',modelo:'Partner Patagónica 1.6N VTC',pagado:'Fondo',valor:9000000,desc:'Compra'},
-  {fecha:'10/6/2026',tipo:'Gasto',patente:'KXZ 865',marca:'Peugeot',modelo:'Partner Patagónica 1.6N VTC',pagado:'Fondo',valor:30000,desc:'Uber'},
-];
+let movimientos = [];
+let CARS = {};
 
-function getCarData() {
+function buildCars(movs) {
   const cars = {};
-  movimientos.forEach(m => {
+  movs.forEach(m => {
     const k = m.patente;
     if (!cars[k]) cars[k] = {patente:k, marca:m.marca, modelo:m.modelo, movs:[], compra:0, gastos:0, venta:0, retiros:0, fechaCompra:null, fechaVenta:null};
     cars[k].movs.push(m);
-    if (m.tipo === 'Compra') { cars[k].compra += m.valor; if (!cars[k].fechaCompra) cars[k].fechaCompra = m.fecha; }
-    else if (m.tipo === 'Gasto') cars[k].gastos += m.valor;
-    else if (m.tipo === 'Venta') { cars[k].venta += m.valor; cars[k].fechaVenta = m.fecha; }
-    else if (m.tipo === 'Retiro de Socio') cars[k].retiros += m.valor;
+    if      (m.tipo === 'Compra')         { cars[k].compra  += m.valor; if (!cars[k].fechaCompra) cars[k].fechaCompra = m.fecha; }
+    else if (m.tipo === 'Gasto')          { cars[k].gastos  += m.valor; }
+    else if (m.tipo === 'Venta')          { cars[k].venta   += m.valor; cars[k].fechaVenta = m.fecha; }
+    else if (m.tipo === 'Retiro de Socio'){ cars[k].retiros += m.valor; }
   });
   Object.values(cars).forEach(c => {
-    c.vendido = c.venta > 0;
+    c.vendido   = c.venta > 0;
     c.inversion = c.compra + c.gastos;
-    c.ganancia = c.vendido ? (c.venta - c.inversion) : null;
+    c.ganancia  = c.vendido ? (c.venta - c.inversion) : null;
   });
   return cars;
 }
-const CARS = getCarData();
 
 function getRetirosBySocio() {
   const s = {};
-  movimientos.filter(m => m.tipo === 'Retiro de Socio').forEach(m => { s[m.pagado] = (s[m.pagado] || 0) + m.valor; });
+  movimientos.filter(m => m.tipo === 'Retiro de Socio')
+    .forEach(m => { s[m.pagado] = (s[m.pagado]||0) + m.valor; });
   return s;
 }
 
 function parseDate(str) {
-  const p = str.replace('20226','2026').split('/');
+  const p = str.split('/');
   return new Date(+p[2], +p[1]-1, +p[0]);
 }
 
+// ── CARGA DESDE GOOGLE SHEETS ─────────────────────────────
+async function loadData() {
+  document.getElementById('header-sub').textContent = 'Cargando…';
+  document.getElementById('main-content').innerHTML =
+    '<div class="empty">Cargando datos…</div>';
+  try {
+    const res  = await fetch(SHEET_URL);
+    const rows = await res.json();
+    movimientos = rows
+      .filter(r => r['Patente'] && r['Tipo'])
+      .map(r => ({
+        fecha:   r['Fecha']       || '',
+        tipo:    r['Tipo']        || '',
+        patente: r['Patente']     || '',
+        marca:   r['Marca']       || '',
+        modelo:  r['Modelo']      || '',
+        pagado:  r['Pagado por']  || '',
+        desc:    r['Descripcion'] || '',
+        valor:   parseFloat(r['Valor']) || 0,
+      }));
+    CARS = buildCars(movimientos);
+    currentTab = 'dashboard';
+    document.getElementById('header-sub').textContent = 'Resumen general';
+    updateBackBtn();
+    render();
+  } catch(e) {
+    document.getElementById('header-sub').textContent = 'Error';
+    document.getElementById('main-content').innerHTML =
+      `<div class="empty" style="color:var(--red)">No se pudieron cargar los datos.<br><br>
+       <button onclick="loadData()" style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px 24px;font-size:22px;color:var(--blue);cursor:pointer">Reintentar</button></div>`;
+  }
+}
+
+// ── NAVEGACIÓN ────────────────────────────────────────────
 let currentTab = 'dashboard';
-let drillView = null;
-let detailCar = null;
+let drillView  = null;
+let detailCar  = null;
 
 function updateBackBtn() {
-  const btn = document.getElementById('header-back');
-  btn.style.display = (drillView || detailCar) ? 'inline' : 'none';
+  document.getElementById('header-back').style.display = (drillView || detailCar) ? 'inline' : 'none';
 }
 
 function goBack() {
@@ -303,31 +267,56 @@ function goBack() {
 
 function showTab(tab) {
   currentTab = tab; drillView = null; detailCar = null;
-  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', ['dashboard','stock','vendidos'][i] === tab));
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['dashboard','stock','vendidos'][i] === tab));
   const subs = {dashboard:'Resumen general', stock:'Autos en stock', vendidos:'Autos vendidos'};
   document.getElementById('header-sub').textContent = subs[tab];
-  updateBackBtn();
-  render();
+  updateBackBtn(); render();
 }
 
+function showDrill(type) {
+  drillView = type;
+  const labels = {stock:'Autos en stock', vendidos:'Autos vendidos', ganancia:'Ganancia', capital:'Invertido'};
+  document.getElementById('header-sub').textContent = labels[type];
+  updateBackBtn(); render();
+}
+
+function openDetail(patente) {
+  detailCar = patente;
+  document.getElementById('header-sub').textContent = CARS[patente].marca + ' · ' + patente;
+  updateBackBtn(); render();
+}
+
+function closeDetail() {
+  detailCar = null;
+  if (drillView) {
+    const labels = {stock:'Autos en stock', vendidos:'Autos vendidos', ganancia:'Ganancia', capital:'Invertido'};
+    document.getElementById('header-sub').textContent = labels[drillView];
+  } else {
+    const subs = {dashboard:'Resumen general', stock:'Autos en stock', vendidos:'Autos vendidos'};
+    document.getElementById('header-sub').textContent = subs[currentTab];
+  }
+  updateBackBtn(); render();
+}
+
+// ── RENDER ────────────────────────────────────────────────
 function render() {
   const el = document.getElementById('main-content');
   if (detailCar) { el.innerHTML = renderDetail(detailCar); return; }
-  if (drillView) { el.innerHTML = renderDrill(drillView); return; }
+  if (drillView) { el.innerHTML = renderDrill(drillView);  return; }
   if (currentTab === 'dashboard') el.innerHTML = renderDashboard();
   else if (currentTab === 'stock') el.innerHTML = renderStock();
   else el.innerHTML = renderVendidos();
 }
 
 function renderDashboard() {
-  const cars = Object.values(CARS);
-  const vendidos = cars.filter(c => c.vendido);
-  const enStock = cars.filter(c => !c.vendido);
-  const gananciaTotal = vendidos.reduce((s, c) => s + c.ganancia, 0);
-  const inversionStock = enStock.reduce((s, c) => s + c.inversion, 0);
+  const cars         = Object.values(CARS);
+  const vendidos     = cars.filter(c => c.vendido);
+  const enStock      = cars.filter(c => !c.vendido);
+  const gananciaTotal  = vendidos.reduce((s,c) => s+c.ganancia, 0);
+  const inversionStock = enStock.reduce((s,c)  => s+c.inversion, 0);
   const retiros = getRetirosBySocio();
-  const maxRet = Math.max(...Object.values(retiros), 1);
-  const socios = ['Ariel', 'Miguel', 'Martin'];
+  const maxRet  = Math.max(...Object.values(retiros), 1);
+  const socios  = ['Ariel','Miguel','Martin'];
   return `
     <div class="section-label">resumen</div>
     <div class="metrics-grid">
@@ -343,7 +332,7 @@ function renderDashboard() {
       </div>
       <div class="metric clickable" onclick="showDrill('ganancia')">
         <div class="metric-label">Ganancia</div>
-        <div class="metric-value ${gananciaTotal >= 0 ? 'green' : ''}">${fmtK(gananciaTotal)}</div>
+        <div class="metric-value ${gananciaTotal>=0?'green':''}">${fmtK(gananciaTotal)}</div>
         <div class="metric-sub">tap para ver →</div>
       </div>
       <div class="metric clickable" onclick="showDrill('capital')">
@@ -356,8 +345,8 @@ function renderDashboard() {
     <div class="chart-wrap">
       <div class="chart-label">acumulado total</div>
       ${socios.map(s => {
-        const v = retiros[s] || 0;
-        const pct = Math.round(v / maxRet * 100);
+        const v = retiros[s]||0;
+        const pct = Math.round(v/maxRet*100);
         return `<div class="bar-row">
           <div class="bar-name">${s}</div>
           <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:var(--blue)">
@@ -368,14 +357,6 @@ function renderDashboard() {
     </div>`;
 }
 
-function showDrill(type) {
-  drillView = type;
-  const labels = {stock:'Autos en stock', vendidos:'Autos vendidos', ganancia:'Ganancia', capital:'Invertido'};
-  document.getElementById('header-sub').textContent = labels[type];
-  updateBackBtn();
-  render();
-}
-
 function carCard(c, isVendido) {
   const fechas = isVendido
     ? `<div class="car-date">📅 Compra: ${c.fechaCompra}</div><div class="car-date">🏁 Venta: ${c.fechaVenta}</div>`
@@ -383,10 +364,10 @@ function carCard(c, isVendido) {
   const nums = isVendido
     ? `<div><div class="car-num-label">Inversión</div><div class="car-num-value">${fmtK(c.inversion)}</div></div>
        <div><div class="car-num-label">Venta</div><div class="car-num-value">${fmtK(c.venta)}</div></div>
-       <div style="grid-column:1/-1"><div class="car-num-label">Ganancia</div><div class="car-num-value profit" style="font-size:28px">${fmtK(c.ganancia)}</div></div>`
+       <div style="grid-column:1/-1"><div class="car-num-label">Ganancia</div><div class="car-num-value profit">${fmtK(c.ganancia)}</div></div>`
     : `<div><div class="car-num-label">Compra</div><div class="car-num-value">${fmtK(c.compra)}</div></div>
        <div><div class="car-num-label">Gastos</div><div class="car-num-value amber">${fmtK(c.gastos)}</div></div>
-       <div style="grid-column:1/-1"><div class="car-num-label">Invertido</div><div class="car-num-value" style="font-size:28px">${fmtK(c.inversion)}</div></div>`;
+       <div style="grid-column:1/-1"><div class="car-num-label">Invertido</div><div class="car-num-value">${fmtK(c.inversion)}</div></div>`;
   return `<div class="car-card" onclick="openDetail('${c.patente}')">
     <div class="car-header">
       <div>
@@ -394,7 +375,7 @@ function carCard(c, isVendido) {
         <div class="car-brand">${c.modelo}</div>
         <div class="car-plate">${c.patente}</div>
       </div>
-      <span class="badge ${isVendido ? 'badge-vendido' : 'badge-stock'}">${isVendido ? 'Vendido' : 'En stock'}</span>
+      <span class="badge ${isVendido?'badge-vendido':'badge-stock'}">${isVendido?'Vendido':'En stock'}</span>
     </div>
     ${fechas}
     <div class="car-numbers">${nums}</div>
@@ -402,105 +383,66 @@ function carCard(c, isVendido) {
 }
 
 function renderDrill(type) {
-  const cars = Object.values(CARS);
   const isVend = type === 'vendidos' || type === 'ganancia';
-  const list = isVend ? cars.filter(c => c.vendido) : cars.filter(c => !c.vendido);
-  const title = isVend ? 'Vendidos' : 'En stock';
-  return `
-    <div class="section-label">${title} (${list.length})</div>
+  const list   = Object.values(CARS).filter(c => isVend ? c.vendido : !c.vendido);
+  const title  = isVend ? 'Vendidos' : 'En stock';
+  return `<div class="section-label">${title} (${list.length})</div>
     ${list.map(c => carCard(c, isVend)).join('')}`;
 }
 
 function renderStock() {
   const cars = Object.values(CARS).filter(c => !c.vendido);
   if (!cars.length) return '<div class="empty">No hay autos en stock</div>';
-  return `<div class="section-label">en stock (${cars.length})</div>${cars.map(c => carCard(c, false)).join('')}`;
+  return `<div class="section-label">en stock (${cars.length})</div>${cars.map(c => carCard(c,false)).join('')}`;
 }
 
 function renderVendidos() {
   const cars = Object.values(CARS).filter(c => c.vendido);
   if (!cars.length) return '<div class="empty">No hay autos vendidos aún</div>';
-  return `<div class="section-label">vendidos (${cars.length})</div>${cars.map(c => carCard(c, true)).join('')}`;
+  return `<div class="section-label">vendidos (${cars.length})</div>${cars.map(c => carCard(c,true)).join('')}`;
 }
-
-function openDetail(patente) {
-  detailCar = patente;
-  document.getElementById('header-sub').textContent = CARS[patente].marca + ' · ' + patente;
-  updateBackBtn();
-  render();
-}
-
-function closeDetail() {
-  detailCar = null;
-  if (drillView) {
-    const labels = {stock:'Autos en stock', vendidos:'Autos vendidos', ganancia:'Ganancia', capital:'Invertido'};
-    document.getElementById('header-sub').textContent = labels[drillView];
-  } else {
-    const subs = {dashboard:'Resumen general', stock:'Autos en stock', vendidos:'Autos vendidos'};
-    document.getElementById('header-sub').textContent = subs[currentTab];
-  }
-  updateBackBtn();
-  render();
-}
-
-const tipoIcon = {Compra:'⬇', Venta:'⬆', Gasto:'🧾', 'Retiro de Socio':'👤', 'Reposicion USD':'$'};
-const tipoClass = {Compra:'compra', Venta:'venta', Gasto:'gasto', 'Retiro de Socio':'retiro', 'Reposicion USD':'reposicion'};
 
 function movCard(m) {
-  const isPos = m.tipo === 'Venta';
   return `<div class="mov-item">
     <div class="mov-body">
       <div class="mov-desc">${m.desc}</div>
       <div class="mov-meta">${m.fecha}${m.pagado && m.pagado !== 'Fondo' ? ' · ' + m.pagado : ''}</div>
     </div>
-    <div class="mov-amount ${isPos ? 'pos' : 'neg'}">${isPos ? '+' : '-'}${fmtK(m.valor)}</div>
+    <div class="mov-amount neg">-${fmtK(m.valor)}</div>
   </div>`;
-}
-
-let gastosVisible = false;
-function toggleGastos() {
-  gastosVisible = !gastosVisible;
-  document.getElementById('movs-list').style.display = gastosVisible ? 'none' : 'block';
-  document.getElementById('gastos-list').style.display = gastosVisible ? 'block' : 'none';
-  document.getElementById('gastos-btn').textContent = gastosVisible ? '← Ver todos los movimientos' : '⧗ Ver solo gastos';
 }
 
 function renderDetail(patente) {
   const c = CARS[patente];
-  gastosVisible = false;
-  const movsSorted = [...c.movs].sort((a, b) => parseDate(a.fecha) - parseDate(b.fecha));
-  const gastosSorted = movsSorted.filter(m => m.tipo === 'Gasto');
+  const gastos = [...c.movs]
+    .filter(m => m.tipo === 'Gasto')
+    .sort((a,b) => parseDate(a.fecha) - parseDate(b.fecha));
   return `
     <div class="detail-header">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">
         <div>
-          <div class="detail-title">${c.modelo}</div>
-          <div style="font-size:36px;color:var(--text1);margin-top:2px">${c.marca}</div>
-          <div class="detail-plate" style="color:var(--text1)">${c.patente}</div>
+          <div class="detail-title">${c.marca}</div>
+          <div style="font-size:30px;color:var(--text1);margin-top:2px">${c.modelo}</div>
+          <div class="detail-plate">${c.patente}</div>
         </div>
-        <span class="badge ${c.vendido ? 'badge-vendido' : 'badge-stock'}">${c.vendido ? 'Vendido' : 'En stock'}</span>
+        <span class="badge ${c.vendido?'badge-vendido':'badge-stock'}">${c.vendido?'Vendido':'En stock'}</span>
       </div>
       <div style="border-top:0.5px solid var(--border);padding-top:12px">
         <div class="result-block"><span class="result-label">Fecha compra</span><span class="result-val">${c.fechaCompra}</span></div>
         ${c.fechaVenta ? `<div class="result-block"><span class="result-label">Fecha venta</span><span class="result-val">${c.fechaVenta}</span></div>` : ''}
         <div class="result-block"><span class="result-label">Compra</span><span class="result-val">${fmt(c.compra)}</span></div>
         <div class="result-block"><span class="result-label">Gastos</span><span class="result-val">${fmt(c.gastos)}</span></div>
-        <div class="result-block"><span class="result-label" style="font-weight:500">Total invertido</span><span class="result-val" style="font-size:16px">${fmt(c.inversion)}</span></div>
+        <div class="result-block"><span class="result-label" style="font-weight:500">Invertido</span><span class="result-val" style="font-size:30px">${fmt(c.inversion)}</span></div>
         ${c.vendido ? `
           <div class="result-block"><span class="result-label">Precio de venta</span><span class="result-val">${fmt(c.venta)}</span></div>
-          <div class="result-block"><span class="result-label" style="font-weight:500">Ganancia neta</span>
-            <span class="result-val" style="color:${c.ganancia >= 0 ? 'var(--green)' : 'var(--red)'};font-size:17px">${fmt(c.ganancia)}</span>
+          <div class="result-block"><span class="result-label" style="font-weight:500">Ganancia</span>
+            <span class="result-val" style="color:${c.ganancia>=0?'var(--green)':'var(--red)'};font-size:30px">${fmt(c.ganancia)}</span>
           </div>` : ''}
       </div>
     </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-      <div class="section-label" style="margin:0">gastos (${gastosSorted.length})</div>
-    </div>
-    <div id="movs-list">${gastosSorted.map(movCard).join('')}</div>
-  `;
+    <div class="section-label">gastos (${gastos.length})</div>
+    ${gastos.map(movCard).join('')}`;
 }
-
-render();
 
 // ── SERVICE WORKER ────────────────────────────────────────
 if ('serviceWorker' in navigator) {
