@@ -78,7 +78,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 .mov-icon.retiro{background:var(--purple-bg);color:var(--purple)}
 .mov-icon.reposicion{background:var(--blue-bg);color:var(--blue)}
 .mov-body{flex:1;min-width:0}
-.mov-desc{font-size:26px;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mov-desc{font-size:22px;color:var(--text1);white-space:normal;overflow:visible}
 .mov-meta{font-size:22px;color:var(--text3);margin-top:2px}
 .mov-amount{font-size:26px;font-weight:500;text-align:right;white-space:nowrap}
 .mov-amount.neg{color:var(--red)}
@@ -383,10 +383,10 @@ function carCard(c, isVendido) {
   const nums = isVendido
     ? `<div><div class="car-num-label">Inversión</div><div class="car-num-value">${fmtK(c.inversion)}</div></div>
        <div><div class="car-num-label">Venta</div><div class="car-num-value">${fmtK(c.venta)}</div></div>
-       <div style="grid-column:1/-1"><div class="car-num-label">Ganancia neta</div><div class="car-num-value profit">${fmtK(c.ganancia)}</div></div>`
+       <div style="grid-column:1/-1"><div class="car-num-label">Ganancia</div><div class="car-num-value profit" style="font-size:28px">${fmtK(c.ganancia)}</div></div>`
     : `<div><div class="car-num-label">Compra</div><div class="car-num-value">${fmtK(c.compra)}</div></div>
        <div><div class="car-num-label">Gastos</div><div class="car-num-value amber">${fmtK(c.gastos)}</div></div>
-       <div style="grid-column:1/-1"><div class="car-num-label">Total invertido</div><div class="car-num-value">${fmtK(c.inversion)}</div></div>`;
+       <div style="grid-column:1/-1"><div class="car-num-label">Invertido</div><div class="car-num-value" style="font-size:28px">${fmtK(c.inversion)}</div></div>`;
   return `<div class="car-card" onclick="openDetail('${c.patente}')">
     <div class="car-header">
       <div>
@@ -450,10 +450,10 @@ function movCard(m) {
   const isPos = m.tipo === 'Venta';
   return `<div class="mov-item">
     <div class="mov-body">
-      <div class="mov-desc" style="font-size:18px;white-space:normal;overflow:visible">${m.desc}</div>
+      <div class="mov-desc">${m.desc}</div>
       <div class="mov-meta">${m.fecha}${m.pagado && m.pagado !== 'Fondo' ? ' · ' + m.pagado : ''}</div>
     </div>
-    <div class="mov-amount ${isPos ? 'pos' : 'neg'}" style="font-size:18px">${isPos ? '+' : '-'}${fmtK(m.valor)}</div>
+    <div class="mov-amount ${isPos ? 'pos' : 'neg'}">${isPos ? '+' : '-'}${fmtK(m.valor)}</div>
   </div>`;
 }
 
