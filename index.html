@@ -253,6 +253,10 @@ async function loadData() {
         valor:   parseFloat(r['Valor']) || 0,
       }));
     CARS = buildCars(movimientos);
+    // DEBUG TEMPORAL - borrar después
+    const ret = movimientos.filter(m => m.tipo === 'Retiro de Socio');
+    console.log('Retiros:', ret.map(r => `${r.pagado}:${r.valor}`));
+    console.log('Retiros agrupados:', getRetirosBySocio());
     currentTab = 'dashboard';
     document.getElementById('header-sub').textContent = 'Resumen general';
     updateBackBtn();
