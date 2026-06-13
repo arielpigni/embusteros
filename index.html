@@ -253,10 +253,7 @@ async function loadData() {
         valor:   parseFloat(r['Valor']) || 0,
       }));
     CARS = buildCars(movimientos);
-    // DEBUG TEMPORAL - borrar después
-    const ret = movimientos.filter(m => m.tipo === 'Retiro de Socio');
-    console.log('Retiros:', ret.map(r => `${r.pagado}:${r.valor}`));
-    console.log('Retiros agrupados:', getRetirosBySocio());
+    console.log('Retiros fechas:', movimientos.filter(m=>m.tipo==='Retiro de Socio').map(m=>m.fecha));
     currentTab = 'dashboard';
     document.getElementById('header-sub').textContent = 'Resumen general';
     updateBackBtn();
@@ -326,20 +323,53 @@ function render() {
   else el.innerHTML = renderVendidos();
 }
 
+function getRetirosPorMes() {
+  const meses = {};
+  const socios = ['Ariel','Miguel','Martin'];
+  movimientos.filter(m => m.tipo === 'Retiro de Socio').forEach(m => {
+    const p = m.fecha.split('/');
+    if (p.length < 3) return;
+    const anio = String(p[2]).slice(-2);
+    const key = `${p[2]}-${p[1].padStart(2,'0')}`;
+    const label = ['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][+p[1]] + '-' + anio;
+    if (!meses[key]) meses[key] = {label, socios:{}};
+    meses[key].socios[m.pagado] = (meses[key].socios[m.pagado]||0) + m.valor;
+  });
+  return Object.entries(meses).sort((a,b)=>b[0].localeCompare(a[0])).map(([,v])=>v);
+}
+
+function calcIndicadores(vendidos) {
+  const conFechas = vendidos.filter(c => c.fechaCompra && c.fechaVenta);
+  let promDias = 0;
+  if (conFechas.length) {
+    const totalDias = conFechas.reduce((s,c) => {
+      const diff = parseDate(c.fechaVenta) - parseDate(c.fechaCompra);
+      return s + diff / (1000*60*60*24);
+    }, 0);
+    promDias = Math.round(totalDias / conFechas.length);
+  }
+  let promMargen = 0;
+  const conGanancia = vendidos.filter(c => c.inversion > 0);
+  if (conGanancia.length) {
+    promMargen = Math.round(conGanancia.reduce((s,c) => s + (c.ganancia/c.inversion)*100, 0) / conGanancia.length);
+  }
+  return {promDias, promMargen};
+}
+
 function renderDashboard() {
-  const cars         = Object.values(CARS);
-  const vendidos     = cars.filter(c => c.vendido);
-  const enStock      = cars.filter(c => !c.vendido);
+  const cars           = Object.values(CARS);
+  const vendidos       = cars.filter(c => c.vendido);
+  const enStock        = cars.filter(c => !c.vendido);
   const gananciaTotal  = vendidos.reduce((s,c) => s+c.ganancia, 0);
   const inversionStock = enStock.reduce((s,c)  => s+c.inversion, 0);
-  const retiros = getRetirosBySocio();
-  const maxRet  = Math.max(...Object.values(retiros), 1);
-  const socios  = ['Ariel','Miguel','Martin'];
+  const {promDias, promMargen} = calcIndicadores(vendidos);
+  const retirosMes = getRetirosPorMes();
+
   return `
     <div class="section-label">resumen</div>
     <div class="metrics-grid">
       <div class="metric clickable" onclick="showDrill('stock')">
-        <div class="metric-label">Autos en stock</div>
+        <div class="metric-label">En stock</div>
         <div class="metric-value blue">${enStock.length}</div>
         <div class="metric-sub">tap para ver →</div>
       </div>
@@ -358,20 +388,48 @@ function renderDashboard() {
         <div class="metric-value amber">${fmtK(inversionStock)}</div>
         <div class="metric-sub">tap para ver →</div>
       </div>
+      <div class="metric">
+        <div class="metric-label">Días prom.</div>
+        <div class="metric-value blue">${promDias}</div>
+        <div class="metric-sub">compra → venta</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Margen prom.</div>
+        <div class="metric-value green">${promMargen}%</div>
+        <div class="metric-sub">sobre inversión</div>
+      </div>
     </div>
-    <div class="section-label">retiros por socio</div>
+    <div class="section-label">retiros mensuales por socio</div>
     <div class="chart-wrap">
-      <div class="chart-label">acumulado total</div>
-      ${socios.map(s => {
-        const v = retiros[s]||0;
-        const pct = Math.round(v/maxRet*100);
-        return `<div class="bar-row">
-          <div class="bar-name">${s}</div>
-          <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:var(--blue)">
-            <span class="bar-val">${fmtK(v)}</span>
-          </div></div>
+      ${(() => {
+        const socios = ['Ariel','Miguel','Martin'];
+        const acumPorSocio = {};
+        socios.forEach(s => { acumPorSocio[s] = 0; });
+        retirosMes.forEach(m => socios.forEach(s => { acumPorSocio[s] += m.socios[s]||0; }));
+
+        // acumulado — tomo cualquier socio (todos igual)
+        const socioRef = socios[0];
+        const acumVal = acumPorSocio[socioRef];
+
+        const acumHtml = `<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;padding-bottom:12px;border-bottom:0.5px solid var(--border)">
+          <span style="font-size:22px;color:var(--text2)">Acumulado c/u</span>
+          <span style="font-size:26px;font-weight:600;color:var(--green)">${fmtK(acumVal)}</span>
         </div>`;
-      }).join('')}
+
+        const maxVal = Math.max(...retirosMes.map(m => m.socios[socioRef]||0), 1);
+        const barsHtml = retirosMes.map(m => {
+          const v = m.socios[socioRef]||0;
+          const pct = Math.round(v/maxVal*100);
+          return `<div class="bar-row" style="margin-bottom:10px">
+            <div class="bar-name" style="width:76px;font-size:20px;white-space:nowrap;flex-shrink:0">${m.label}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:var(--blue)">
+              <span class="bar-val">${fmtK(v)}</span>
+            </div></div>
+          </div>`;
+        }).join('');
+
+        return acumHtml + barsHtml;
+      })()}
     </div>`;
 }
 
