@@ -242,7 +242,8 @@ async function loadData() {
   try {
     const { data: rows, error } = await supabaseClient
       .from('movimientos')
-      .select('tipo, fecha, valor, pagado_por, descripcion, autos(patente, marca, modelo)');
+      .select('tipo, fecha, valor, pagado_por, descripcion, autos(patente, marca, modelo)')
+      .order('id', { ascending: true });
     if (error) throw error;
     movimientos = rows
       .filter(r => r.autos && r.autos.patente && r.tipo)
