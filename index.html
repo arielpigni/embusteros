@@ -96,6 +96,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 .pin-btn{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);height:80px;font-size:32px;font-weight:500;color:var(--text1);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.1s}
 .pin-btn:active{background:var(--bg3)}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 
@@ -146,8 +147,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 <script>
 // ── CONFIG ────────────────────────────────────────────────
 const PIN = '10500';
-// Pegá acá la URL de tu Web App de Apps Script después de publicarla:
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyLElerFX73_c4y5lfmqE0XDxMCLccoOXQBZB5puSYjapA2UPyZrs2uyAqM2ZuEYNHQ/exec';
+const SUPABASE_URL = 'https://jrtwuwgdxgyqmrqwywyx.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpydHd1d2dkeGd5cW1ycXd5d3l4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzNDU2MDgsImV4cCI6MjEwMDkyMTYwOH0.eiHy2HlxR1iQ6AMNcZVZZeHjuGfGC2W4BLYLnhszKMs';
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // ─────────────────────────────────────────────────────────
 
 // ── PIN ───────────────────────────────────────────────────
@@ -238,19 +240,21 @@ async function loadData() {
   document.getElementById('main-content').innerHTML =
     '<div class="empty">Cargando datos…</div>';
   try {
-    const res  = await fetch(SHEET_URL);
-    const rows = await res.json();
+    const { data: rows, error } = await supabaseClient
+      .from('movimientos')
+      .select('tipo, fecha, valor, pagado_por, descripcion, autos(patente, marca, modelo)');
+    if (error) throw error;
     movimientos = rows
-      .filter(r => r['Patente'] && r['Tipo'])
+      .filter(r => r.autos && r.autos.patente && r.tipo)
       .map(r => ({
-        fecha:   formatFecha(r['Fecha'])  || '',
-        tipo:    r['Tipo']        || '',
-        patente: r['Patente']     || '',
-        marca:   r['Marca']       || '',
-        modelo:  r['Modelo']      || '',
-        pagado:  r['Pagado por']  || '',
-        desc:    r['Descripcion'] || '',
-        valor:   parseFloat(r['Valor']) || 0,
+        fecha:   formatFecha(r.fecha)  || '',
+        tipo:    r.tipo        || '',
+        patente: r.autos.patente     || '',
+        marca:   r.autos.marca       || '',
+        modelo:  r.autos.modelo      || '',
+        pagado:  r.pagado_por  || '',
+        desc:    r.descripcion || '',
+        valor:   parseFloat(r.valor) || 0,
       }));
     CARS = buildCars(movimientos);
     console.log('Retiros fechas:', movimientos.filter(m=>m.tipo==='Retiro de Socio').map(m=>m.fecha));
