@@ -63,19 +63,19 @@ Este SQL y la creación del bucket los corre Ariel manualmente en el SQL editor 
 
 ## Navegación y UI
 
-Dos tabs (reemplazan Dashboard/Stock/Vendidos de `index.html`): **Movimientos** y **Autos**. Reutiliza el theme dark y variables CSS de `index.html` (`--bg0/1/2/3`, `--blue`, etc.), con controles de formulario (inputs, selects, date picker, file input) en vez de tarjetas de dashboard. Mismo ancho ~430px centrado.
+**Revisión (2026-07-30):** el diseño original era mobile-first (tabs arriba, formularios apilados). Ariel pidió reorientarlo a desktop, con una identidad visual propia en vez de heredar el theme de `index.html`. Diseño validado con mockups (ver artifact de la sesión): sidebar fija a la izquierda (Movimientos / Autos, con lugar para sumar secciones futuras como "Carga por voz") + panel lateral (640px) para alta/edición, sin tapar la tabla de fondo. Paleta dark propia con soporte de tema claro (toggle en el header, persistido en `localStorage`), tipografía de sistema para todo lo editable y monoespaciada solo para cifras de solo lectura (tabla, resúmenes). Campos de un mismo formulario van en filas de a dos/tres para que Compra y Venta entren sin scroll en el panel.
 
 ### Tab "Movimientos"
 
-**Alta** — selector de tipo → Compra / Venta / Gasto / Retiro de Socio:
+Tabla real (no cards) con columnas Tipo/Auto/Fecha/Pagado por/Valor, filtro por patente y chips de tipo. "+ Nuevo movimiento" y click en una fila abren el panel lateral con selector de tipo → Compra / Venta / Gasto / Retiro de Socio:
 
-- **Compra:** patente, marca, modelo, fecha, valor (ARS), pagado por. Al guardar: upsert en `autos` por `patente` (crea la fila si no existe) + insert en `movimientos`. Año/color/kilometraje/fotos **no** se piden acá — se cargan después en la tab Autos, para mantener el alta rápida.
-- **Venta:** dropdown de autos en stock (sin movimiento Venta todavía) + fecha + valor + pagado por.
-- **Gasto:** dropdown de todos los autos + fecha + valor + descripción + pagado por.
-- **Retiro de Socio:** sin auto asociado — fecha, valor, pagado por (socio).
-- Campo común "pagado por": dropdown Ariel/Miguel/Martin.
+- **Compra:** patente, marca, modelo, año, color, kilometraje, fecha, valor (ARS), pagado por — todo en un solo paso (a diferencia del diseño original, año/color/km ya no quedan relegados a la tab Autos). Al guardar: upsert en `autos` por `patente` (crea la fila si no existe) + insert en `movimientos`.
+- **Venta:** buscador de auto (autos en stock) que al seleccionarlo muestra Compra + Gastos + Inversión + **Ganancia calculada en vivo** (`valor de venta − inversión`, recalculada en cada tecleo) + fecha + valor + pagado por.
+- **Gasto:** buscador de auto (todos) + descripción + fecha + valor + pagado por.
+- **Retiro de Socio:** selector de socio, y un dropdown que solo lista **autos vendidos con reparto pendiente para ese socio** (un auto puede estar retirado para uno y pendiente para los otros dos — el retiro se trackea por auto + socio, no por auto en general). Al elegir un auto se ve su ganancia total y el estado de los 3 socios (pills "retirado"/"pendiente"), y el monto sugerido es `ganancia ÷ 3`, editable. No tiene campo "pagado por" — el socio ya lo identifica el selector de arriba.
+- **Pagado por (Compra/Venta/Gasto):** arranca siempre en **Fondo** (destacado, con check), con un link secundario "¿Pagó un socio en su lugar?" que despliega Ariel/Miguel/Martin solo si hace falta — refleja que la gran mayoría de los movimientos los paga el fondo común, no un socio directamente.
 
-**Listado + edición/borrado:** lista de últimos movimientos (más reciente primero) con filtro de texto por patente. Tocar un item abre el mismo form precargado en modo edición, con "Guardar cambios" y "Eliminar".
+**Edición/borrado:** click en una fila de la tabla abre el mismo panel precargado, con "Guardar cambios" y "Eliminar".
 
 **Borrado de Compra:** si se borra el movimiento de Compra de un auto, la fila en `autos` no se borra en cascada — evita perder ficha/fotos por error. Queda huérfana hasta que se le cargue una Compra nueva o se gestione a mano.
 
@@ -83,7 +83,7 @@ Dos tabs (reemplazan Dashboard/Stock/Vendidos de `index.html`): **Movimientos** 
 
 Lista de autos (patente + marca/modelo). Tocar uno abre su ficha:
 
-- Campos editables: año, color, kilometraje.
+- Campos editables: año, color, kilometraje (ya se completan típicamente al cargar la Compra, pero quedan editables acá también).
 - Galería de fotos: subir nuevas (múltiples), ver miniaturas, borrar individualmente.
 
 No se borra el auto en sí desde acá.
