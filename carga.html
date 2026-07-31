@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Embusteros SRL — Carga</title>
+<style>
+:root{
+  --bg-0:#0b0d10;--bg-1:#12151a;--bg-2:#181c23;--bg-3:#232833;
+  --border:#262b34;--border-2:#333a47;
+  --ink-1:#eef1f5;--ink-2:#98a1b0;--ink-3:#5b6472;
+  --accent:#5b8cff;--accent-dim:#1c2740;
+  --positive:#3ecf8e;--positive-dim:#123226;
+  --negative:#ff6b6b;--negative-dim:#341a1a;
+  --warning:#f5b94f;--warning-dim:#332711;
+  --socio:#c9a6ff;--socio-dim:#2a2140;
+  --radius:9px;--radius-lg:14px;
+  --font-ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  --font-mono:"SF Mono","Cascadia Code","Roboto Mono",Consolas,monospace;
+}
+:root[data-theme="light"]{
+  --bg-0:#f5f6f8;--bg-1:#ffffff;--bg-2:#ffffff;--bg-3:#eef0f4;
+  --border:#e1e4ea;--border-2:#cdd2dc;
+  --ink-1:#171a20;--ink-2:#5b6472;--ink-3:#8991a0;
+  --accent:#3f6fe0;--accent-dim:#e8eefd;
+  --positive:#1f9d67;--positive-dim:#e5f7ee;
+  --negative:#d84343;--negative-dim:#fbeaea;
+  --warning:#b5790a;--warning-dim:#fbf1de;
+  --socio:#8b5cf6;--socio-dim:#f1e9ff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg-0);color:var(--ink-1);font-family:var(--font-ui)}
+body{font-size:15.5px;line-height:1.5}
+button,input{font-family:inherit}
+.tabular{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.hidden{display:none !important}
+
+/* ── PIN ── */
+.pin-screen{position:fixed;inset:0;background:var(--bg-0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;padding:32px}
+.pin-logo{font-size:26px;font-weight:600;color:var(--ink-1);margin-bottom:6px}
+.pin-logo span{color:var(--accent)}
+.pin-sub{font-size:15px;color:var(--ink-2);margin-bottom:32px}
+.pin-dots{display:flex;gap:12px;margin-bottom:20px}
+.pin-dot{width:12px;height:12px;border-radius:50%;background:var(--bg-3);border:1.5px solid var(--border-2)}
+.pin-dot.filled{background:var(--accent);border-color:var(--accent)}
+.pin-error{color:var(--negative);font-size:14px;margin-bottom:14px;min-height:18px}
+
+/* ── toast ── */
+.toast{position:fixed;top:20px;right:20px;max-width:380px;background:var(--bg-2);border:1px solid var(--border-2);border-radius:var(--radius-lg);padding:14px 16px;font-size:13.5px;color:var(--ink-1);box-shadow:0 12px 32px rgba(0,0,0,.4);z-index:300;opacity:0;transform:translateY(-10px);transition:opacity .2s,transform .2s}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.err{border-color:var(--negative);color:var(--negative)}
+
+/* ── confirm dialog ── */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;display:flex;align-items:center;justify-content:center;padding:20px}
+.confirm-box{background:var(--bg-1);border:1px solid var(--border-2);border-radius:var(--radius-lg);padding:22px 24px;max-width:360px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.45)}
+.confirm-box p{font-size:15px;color:var(--ink-1);margin:0 0 20px;line-height:1.5}
+.confirm-actions{display:flex;gap:10px;justify-content:flex-end}
+.confirm-actions button{padding:9px 16px;border-radius:var(--radius);font-size:14px;cursor:pointer;border:1px solid var(--border)}
+.confirm-actions .confirm-cancel{background:none;color:var(--ink-2)}
+.confirm-actions .confirm-ok{background:var(--negative);color:#fff;border-color:var(--negative);font-weight:500}
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:240px}
+.pin-btn{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);height:56px;font-size:20px;color:var(--ink-1);cursor:pointer}
+.pin-btn:hover{background:var(--bg-3)}
+
+/* ── topbar ── */
+.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;padding:10px 22px;background:var(--bg-1);border-bottom:1px solid var(--border)}
+.topbar .spacer{flex:1}
+.theme-toggle{display:flex;align-items:center;gap:8px;background:var(--bg-2);border:1px solid var(--border);border-radius:99px;padding:5px 6px 5px 12px;cursor:pointer;font-size:13px;color:var(--ink-2)}
+.theme-toggle .knob{width:30px;height:18px;border-radius:99px;background:var(--bg-3);position:relative;transition:background .15s}
+.theme-toggle .knob::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--ink-1);transition:transform .15s}
+:root[data-theme="light"] .theme-toggle .knob{background:var(--accent-dim)}
+:root[data-theme="light"] .theme-toggle .knob::after{transform:translateX(12px);background:var(--accent)}
+.refresh-btn{background:none;border:none;color:var(--ink-3);font-size:18px;cursor:pointer}
+
+/* ── shell ── */
+.shell{display:grid;grid-template-columns:240px 1fr;min-height:calc(100vh - 49px)}
+.side{background:var(--bg-1);border-right:1px solid var(--border);padding:24px 16px;display:flex;flex-direction:column;gap:3px}
+.brand{font-size:17.5px;font-weight:600;margin:4px 8px 24px;letter-spacing:-.2px}
+.brand span{color:var(--accent)}
+.nav-item{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:var(--radius);color:var(--ink-2);font-size:15px;cursor:pointer}
+.nav-item.active{background:var(--bg-3);color:var(--ink-1);font-weight:500}
+.nav-item .dot{width:6px;height:6px;border-radius:50%;background:var(--ink-3);flex-shrink:0}
+.nav-item.active .dot{background:var(--accent)}
+.nav-section{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);margin:20px 12px 6px}
+.nav-item.locked{color:var(--ink-3);cursor:default}
+.nav-item.locked .tag{margin-left:auto;font-size:10px;background:var(--bg-3);color:var(--ink-3);padding:2px 7px;border-radius:99px}
+.side-foot{margin-top:auto;padding:12px;font-size:12.5px;color:var(--ink-3)}
+
+.main{padding:30px 36px;max-width:1160px}
+.head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:24px;gap:14px}
+.head h1{font-size:24px;font-weight:600;margin:0 0 5px;letter-spacing:-.3px}
+.head p{margin:0;color:var(--ink-2);font-size:14px}
+.btn-primary{background:var(--accent);color:#fff;border:none;border-radius:var(--radius);padding:11px 18px;font-size:14.5px;font-weight:500;cursor:pointer}
+.btn-primary:hover{filter:brightness(1.08)}
+
+.toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.search{flex:1;min-width:180px;max-width:300px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);padding:9px 13px;font-size:14px;color:var(--ink-1)}
+.search::placeholder{color:var(--ink-3)}
+.chip-filter{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:8px 13px;border-radius:99px;border:1px solid var(--border);background:var(--bg-2);color:var(--ink-2);font-size:13px;cursor:pointer}
+.chip.active{background:var(--bg-3);color:var(--ink-1);border-color:var(--border-2)}
+
+table.ledger{width:100%;border-collapse:collapse;background:var(--bg-1);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+table.ledger th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);font-weight:500;padding:12px 16px;border-bottom:1px solid var(--border)}
+table.ledger th.num{text-align:right}
+table.ledger th.sortable{cursor:pointer;user-select:none}
+table.ledger th.sortable:hover{color:var(--ink-2)}
+table.ledger td{padding:14px 16px;border-bottom:1px solid var(--border);font-size:14.5px;color:var(--ink-1)}
+table.ledger tr:last-child td{border-bottom:none}
+table.ledger tbody tr{cursor:pointer}
+table.ledger tbody tr:hover{background:var(--bg-3)}
+td.num{text-align:right}
+.plate{font-family:var(--font-mono);font-size:13px;color:var(--ink-2);background:var(--bg-3);padding:3px 8px;border-radius:5px;letter-spacing:.03em}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;padding:4px 10px;border-radius:99px;white-space:nowrap}
+.badge.compra{background:var(--accent-dim);color:var(--accent)}
+.badge.venta{background:var(--positive-dim);color:var(--positive)}
+.badge.gasto{background:var(--negative-dim);color:var(--negative)}
+.badge.retiro{background:var(--warning-dim);color:var(--warning)}
+.badge.socio{background:var(--socio-dim);color:var(--socio)}
+.pagador-fondo{color:var(--ink-2)}
+.badge.stock{background:var(--accent-dim);color:var(--accent)}
+.badge.vendido{background:var(--positive-dim);color:var(--positive)}
+.amt{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:14.5px}
+.empty{text-align:center;padding:40px 20px;color:var(--ink-3);font-size:15px}
+
+/* ── panel ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;display:flex;justify-content:flex-end}
+.panel{width:640px;max-width:94vw;background:var(--bg-1);border-left:1px solid var(--border);height:100%;overflow-y:auto;padding:24px 30px;box-shadow:-24px 0 48px rgba(0,0,0,.35)}
+.panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.panel-head h2{font-size:18.5px;font-weight:600}
+.panel-close{background:none;border:none;color:var(--ink-3);font-size:21px;cursor:pointer;line-height:1}
+.msg{font-size:13.5px;margin-bottom:12px;padding:9px 12px;border-radius:var(--radius);background:var(--bg-3);color:var(--ink-2)}
+.msg.ok{background:var(--positive-dim);color:var(--positive)}
+.msg.err{background:var(--negative-dim);color:var(--negative)}
+
+.seg{display:flex;background:var(--bg-3);border-radius:var(--radius);padding:3px;gap:2px;margin-bottom:16px}
+.seg button{flex:1;padding:8px 4px;border:none;background:none;color:var(--ink-2);font-size:13.5px;border-radius:6px;cursor:pointer}
+.seg button.active{background:var(--bg-1);color:var(--ink-1);font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.seg button.active[data-tipo="Compra"]{background:var(--accent-dim);color:var(--accent);box-shadow:none}
+.seg button.active[data-tipo="Venta"]{background:var(--positive-dim);color:var(--positive);box-shadow:none}
+.seg button.active[data-tipo="Gasto"]{background:var(--negative-dim);color:var(--negative);box-shadow:none}
+.seg button.active[data-tipo="Retiro de Socio"]{background:var(--warning-dim);color:var(--warning);box-shadow:none}
+
+.f-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.f-row.c3{grid-template-columns:1fr 1fr 1fr}
+.f-label{font-size:13.5px;color:var(--ink-2);margin:0 0 6px;display:block;font-weight:500}
+.f-group{margin-bottom:13px}
+.f-input{width:100%;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;font-size:15.5px;color:var(--ink-1)}
+.f-input:focus{outline:none;border-color:var(--accent)}
+.f-empty{font-size:13.5px;color:var(--ink-3);padding:10px 2px}
+.existing-fotos-note{font-size:13px;color:var(--ink-2);background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px}
+
+.combo-wrap{position:relative}
+.combo-list{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--bg-2);border:1px solid var(--border-2);border-radius:var(--radius);max-height:240px;overflow-y:auto;z-index:20;box-shadow:0 10px 28px rgba(0,0,0,.35)}
+.combo-item{padding:9px 12px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.combo-item:hover{background:var(--bg-3)}
+.combo-item .ci-name{color:var(--ink-2)}
+.combo-empty{padding:10px 12px;font-size:13px;color:var(--ink-3)}
+.combo-thumb{width:32px;height:32px;border-radius:6px;object-fit:cover;flex-shrink:0}
+.combo-thumb-empty{background:var(--bg-3);display:flex;align-items:center;justify-content:center;font-size:15px}
+
+.payer-fondo{display:flex;align-items:center;gap:10px;border:1.5px solid var(--border);background:var(--bg-2);border-radius:var(--radius);padding:9px 12px;cursor:pointer}
+.payer-fondo.active{border-color:var(--accent);background:var(--accent-dim)}
+.payer-fondo .check{width:18px;height:18px;border-radius:50%;background:var(--bg-3);color:transparent;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.payer-fondo.active .check{background:var(--accent);color:#fff}
+.payer-fondo .txt{flex:1;display:flex;align-items:baseline;gap:7px}
+.payer-fondo .txt .t1{font-size:15.5px;font-weight:600;color:var(--ink-1)}
+.payer-fondo .txt .t2{font-size:13.5px;color:var(--ink-2)}
+.payer-alt-toggle{background:none;border:none;color:var(--ink-3);font-size:12.5px;padding:6px 2px 0;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.payer-alt-row{display:flex;gap:6px;margin-top:6px}
+.payer-alt-btn{flex:1;padding:7px 4px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg-2);color:var(--ink-3);font-size:12.5px;cursor:pointer;text-align:center}
+.payer-alt-btn.active{color:var(--accent);border-color:var(--accent);background:var(--accent-dim);font-weight:500}
+
+.socio-row{display:flex;gap:6px}
+.socio-btn{flex:1;padding:9px 4px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg-2);color:var(--ink-2);font-size:13.5px;cursor:pointer;text-align:center}
+.socio-btn.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);font-weight:500}
+
+.stat-card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:13px}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.stat-l{font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-2);font-weight:500;margin-bottom:6px}
+.stat-v{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:19px;font-weight:500;color:var(--ink-1);letter-spacing:-.2px}
+.stat.ganancia .stat-v{color:var(--positive);font-weight:600}
+.stat.ganancia .stat-v.neg{color:var(--negative)}
+.venta-photo{width:64px;height:64px;border-radius:var(--radius);object-fit:cover;flex-shrink:0}
+.venta-photo-empty{background:var(--bg-3);display:flex;align-items:center;justify-content:center;font-size:24px}
+
+.cost-list{max-height:170px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:13px}
+.cost-item{display:flex;flex-direction:column;gap:5px;padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px}
+.cost-item:last-child{border-bottom:none}
+.cost-item .ci-top{display:flex;align-items:center;gap:8px;min-width:0}
+.cost-item .desc{flex:1;min-width:0;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cost-item .ci-bottom{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.cost-item .date{color:var(--ink-3);font-size:12px}
+.cost-item .val{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-weight:500}
+
+.retiro-pick{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:13px 16px;margin-bottom:13px}
+.retiro-pick .car{font-size:14.5px;color:var(--ink-1)}
+.retiro-pick .car .sub{color:var(--ink-3);font-size:12.5px}
+.retiro-pick .rp-ganancia{display:flex;justify-content:space-between;align-items:baseline;margin-top:9px;padding-top:9px;border-top:1px solid var(--border);font-size:12.5px;color:var(--ink-2)}
+.retiro-pick .rp-ganancia-v{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:19px;font-weight:600;color:var(--positive)}
+.retiro-pick .rp-split{display:flex;gap:8px;margin-top:9px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:4px 10px;border-radius:99px;border:1px solid var(--border)}
+.pill.pending{color:var(--warning);border-color:var(--warning-dim);background:var(--warning-dim)}
+.pill.done{color:var(--positive);border-color:var(--positive-dim);background:var(--positive-dim)}
+
+.btn-submit{width:100%;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);padding:12px;font-size:15px;font-weight:500;cursor:pointer;margin-top:6px}
+.btn-row{display:flex;gap:10px}
+.btn-row .btn-submit{margin-top:6px}
+.btn-danger{background:var(--negative-dim);color:var(--negative);border:1px solid var(--negative);border-radius:var(--radius);padding:12px 18px;font-size:14px;cursor:pointer;margin-top:6px}
+
+/* ── autos tab ── */
+.auto-card{display:flex;align-items:center;gap:14px;background:var(--bg-1);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:10px;cursor:pointer}
+.auto-card:hover{border-color:var(--border-2)}
+.auto-thumb{width:56px;height:56px;border-radius:var(--radius);object-fit:cover;flex-shrink:0}
+.auto-thumb-empty{width:56px;height:56px;border-radius:var(--radius);background:var(--bg-3);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.auto-card-info{flex:1;min-width:0}
+.auto-card-title{font-size:15.5px;color:var(--ink-1);font-weight:500}
+.auto-card-sub{font-size:13px;color:var(--ink-3);margin-top:3px}
+.auto-card-dias{font-size:12.5px;color:var(--ink-2);margin-top:3px}
+.auto-card-dias.done{color:var(--ink-3)}
+.badge-fixed{min-width:76px;justify-content:center}
+.auto-card-metrics{display:flex;gap:22px;flex-shrink:0;min-width:230px;justify-content:flex-end}
+.auto-card-metric{text-align:right;flex-shrink:0}
+.auto-card-metric .l{font-size:11px;color:var(--ink-3);text-transform:uppercase;margin-bottom:2px}
+.auto-card-metric .v{font-family:var(--font-mono);font-size:15px;font-weight:500}
+.auto-card-metric .v.pos{color:var(--positive)}
+.auto-card-metric .v.neg{color:var(--negative)}
+
+.ficha-wrap{max-width:1040px}
+.ficha-actions{display:flex;align-items:center;gap:10px}
+.plate-lg{font-family:var(--font-mono);font-size:17px;font-weight:600;letter-spacing:.08em;color:var(--ink-1);background:var(--bg-3);border:1.5px solid var(--border-2);border-left:4px solid var(--accent);padding:6px 14px;border-radius:6px;display:inline-block}
+.ficha-grid{display:grid;grid-template-columns:1fr 320px;gap:28px;align-items:start;margin-top:18px}
+.ficha-side{background:var(--bg-1);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;position:sticky;top:20px}
+.back-link{font-size:14px;color:var(--accent);cursor:pointer;display:inline-block;margin-bottom:14px}
+.photo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.photo-thumb{position:relative;aspect-ratio:1;border-radius:var(--radius);overflow:hidden;background:var(--bg-3)}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.photo-thumb .del{position:absolute;top:5px;right:5px;background:rgba(0,0,0,.6);color:var(--negative);border:none;border-radius:50%;width:26px;height:26px;font-size:14px;cursor:pointer}
+.file-input-label{display:inline-block;background:var(--bg-2);border:1px dashed var(--border-2);border-radius:var(--radius);padding:10px 16px;font-size:13.5px;color:var(--ink-2);cursor:pointer}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+
+<div id="pin-screen" class="pin-screen">
+  <div class="pin-logo">Embusteros<span>SRL</span></div>
+  <div class="pin-sub">Carga — Ingresá tu PIN</div>
+  <div class="pin-dots">
+    <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div><div class="pin-dot" id="d2"></div>
+    <div class="pin-dot" id="d3"></div><div class="pin-dot" id="d4"></div>
+  </div>
+  <div class="pin-error" id="pin-error"></div>
+  <div class="pin-grid">
+    <button class="pin-btn" onclick="pinPress('1')">1</button>
+    <button class="pin-btn" onclick="pinPress('2')">2</button>
+    <button class="pin-btn" onclick="pinPress('3')">3</button>
+    <button class="pin-btn" onclick="pinPress('4')">4</button>
+    <button class="pin-btn" onclick="pinPress('5')">5</button>
+    <button class="pin-btn" onclick="pinPress('6')">6</button>
+    <button class="pin-btn" onclick="pinPress('7')">7</button>
+    <button class="pin-btn" onclick="pinPress('8')">8</button>
+    <button class="pin-btn" onclick="pinPress('9')">9</button>
+    <button class="pin-btn" style="background:none;border-color:transparent" onclick="pinPress('back')">⌫</button>
+    <button class="pin-btn" onclick="pinPress('0')">0</button>
+    <button class="pin-btn" style="background:none;border-color:transparent"></button>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <div class="topbar">
+    <span class="spacer"></span>
+    <button class="refresh-btn" onclick="refreshAll()" title="Actualizar">↻</button>
+    <div class="theme-toggle" onclick="toggleTheme()">
+      <span id="theme-label">Oscuro</span>
+      <div class="knob"></div>
+    </div>
+  </div>
+  <div class="shell">
+    <div class="side">
+      <div class="brand">Embusteros<span>·carga</span></div>
+      <div class="nav-item active" id="nav-movimientos" onclick="showTab('movimientos')"><span class="dot"></span> Movimientos</div>
+      <div class="nav-item" id="nav-autos" onclick="showTab('autos')"><span class="dot"></span> Autos</div>
+      <div class="nav-section">Más adelante</div>
+      <div class="nav-item locked">Carga por voz <span class="tag">pronto</span></div>
+      <div class="side-foot">Ariel · Miguel · Martin</div>
+    </div>
+    <div class="main" id="main-content"></div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────
+const PIN = '10500';
+const SUPABASE_URL = 'https://jrtwuwgdxgyqmrqwywyx.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpydHd1d2dkeGd5cW1ycXd5d3l4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzNDU2MDgsImV4cCI6MjEwMDkyMTYwOH0.eiHy2HlxR1iQ6AMNcZVZZeHjuGfGC2W4BLYLnhszKMs';
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const SOCIOS = ['Ariel', 'Miguel', 'Martin'];
+const TIPOS = ['Compra', 'Venta', 'Gasto', 'Retiro de Socio'];
+// ─────────────────────────────────────────────────────────
+
+// ── TEMA ──────────────────────────────────────────────────
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  const lbl = document.getElementById('theme-label');
+  if (lbl) lbl.textContent = t === 'light' ? 'Claro' : 'Oscuro';
+}
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  const next = cur === 'light' ? 'dark' : 'light';
+  localStorage.setItem('carga_theme', next);
+  applyTheme(next);
+}
+applyTheme(localStorage.getItem('carga_theme') || 'dark');
+
+// ── Indicador de "procesando" en botones ─────────────────
+function setLoading(btn, loading, loadingText) {
+  if (!btn) return;
+  if (loading) {
+    btn.dataset.originalText = btn.textContent;
+    btn.textContent = loadingText || 'Guardando…';
+    btn.disabled = true;
+    btn.style.opacity = '0.65';
+    btn.style.cursor = 'default';
+  } else {
+    btn.textContent = btn.dataset.originalText || btn.textContent;
+    btn.disabled = false;
+    btn.style.opacity = '';
+    btn.style.cursor = '';
+  }
+}
+
+// ── TOAST (aviso no bloqueante) ──────────────────────────
+function showToast(message, type) {
+  const el = document.createElement('div');
+  el.className = 'toast' + (type === 'err' ? ' err' : '');
+  el.textContent = message;
+  document.body.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => el.remove(), 300);
+  }, 7000);
+}
+
+// ── CONFIRMACIÓN (reemplaza confirm() nativo) ────────────
+function confirmDialog(message, okLabel) {
+  return new Promise((resolve) => {
+    const ov = document.createElement('div');
+    ov.className = 'confirm-overlay';
+    ov.innerHTML = `<div class="confirm-box">
+      <p>${message}</p>
+      <div class="confirm-actions">
+        <button class="confirm-cancel">Cancelar</button>
+        <button class="confirm-ok">${okLabel || 'Eliminar'}</button>
+      </div>
+    </div>`;
+    document.body.appendChild(ov);
+    const cleanup = (result) => { ov.remove(); resolve(result); };
+    ov.querySelector('.confirm-cancel').onclick = () => cleanup(false);
+    ov.querySelector('.confirm-ok').onclick = () => cleanup(true);
+    ov.onclick = (e) => { if (e.target === ov) cleanup(false); };
+  });
+}
+
+// ── PIN ───────────────────────────────────────────────────
+let pinInput = '';
+function pinPress(v) {
+  document.getElementById('pin-error').textContent = '';
+  if (v === 'back') { pinInput = pinInput.slice(0,-1); updateDots(); return; }
+  if (pinInput.length >= PIN.length) return;
+  pinInput += v;
+  updateDots();
+  if (pinInput.length === PIN.length) {
+    setTimeout(() => {
+      if (pinInput === PIN) {
+        document.getElementById('pin-screen').classList.add('hidden');
+        document.getElementById('app').classList.remove('hidden');
+        refreshAll();
+      } else {
+        document.getElementById('pin-error').textContent = 'PIN incorrecto';
+        pinInput = ''; updateDots();
+      }
+    }, 150);
+  }
+}
+function updateDots() {
+  for (let i = 0; i < PIN.length; i++)
+    document.getElementById('d'+i).className = 'pin-dot' + (i < pinInput.length ? ' filled' : '');
+}
+
+// ── FORMATO ───────────────────────────────────────────────
+const fmt = n => '$' + Math.round(n).toLocaleString('es-AR');
+function fmtInt(n) {
+  if (n === null || n === undefined || n === '') return '';
+  return Number(n).toLocaleString('es-AR');
+}
+function parseMonto(v) {
+  return parseFloat(String(v).replace(/\./g, '').replace(',', '.')) || 0;
+}
+function attachMontoFormatting(id) {
+  const el = document.getElementById(id);
+  if (!el || el.dataset.montoWired) return;
+  el.dataset.montoWired = '1';
+  el.addEventListener('input', () => {
+    const fromEnd = el.value.length - (el.selectionStart ?? el.value.length);
+    const raw = el.value.replace(/\D/g, '');
+    el.value = raw ? Number(raw).toLocaleString('es-AR') : '';
+    const pos = Math.max(0, el.value.length - fromEnd);
+    el.setSelectionRange(pos, pos);
+  });
+}
+function formatFecha(val) {
+  if (!val) return '';
+  const d = new Date(val);
+  if (!isNaN(d)) return `${String(d.getUTCDate()).padStart(2,'0')}/${String(d.getUTCMonth()+1).padStart(2,'0')}/${d.getUTCFullYear()}`;
+  return String(val);
+}
+function isoDateOnly(fecha) {
+  const d = new Date(fecha);
+  if (isNaN(d)) return todayISO();
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
+}
+function todayISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function autoLabel(a) { return `${a.patente} — ${a.marca||''} ${a.modelo||''}`.trim(); }
+
+// ── ESTADO ────────────────────────────────────────────────
+let currentTab = 'movimientos';
+let autos = [];
+let movimientos = [];
+let todasFotos = [];
+let filtroTipo = 'Todos';
+let filtroPatente = '';
+let filtroAutoEstado = 'Todos';
+let selectedAutoId = null; // tab Autos
+let autoFotos = [];
+let retiroSocio = SOCIOS[0];       // socio en edición de un Retiro existente
+let retiroEditingId = null;        // id del retiro en edición
+let retiroSociosSel = null;        // Set de socios elegidos para un Retiro nuevo (multi)
+let presetAutoId = null;           // auto precargado al abrir el panel desde la ficha de un auto
+
+async function refreshAll() {
+  document.getElementById('main-content').innerHTML = '<div class="empty">Cargando…</div>';
+  try {
+    const [{ data: autosData, error: e1 }, { data: movsData, error: e2 }, { data: fotosData, error: e3 }] = await Promise.all([
+      supabaseClient.from('autos').select('id, patente, marca, modelo, anio, color, kilometraje').order('patente'),
+      supabaseClient.from('movimientos').select('id, tipo, fecha, valor, pagado_por, descripcion, auto_id').order('id', { ascending: false }),
+      supabaseClient.from('auto_fotos').select('id, auto_id, url, created_at').order('created_at'),
+    ]);
+    if (e1) throw e1;
+    if (e2) throw e2;
+    if (e3) throw e3;
+    autos = autosData || [];
+    movimientos = (movsData || []).map(m => ({ ...m, valor: parseFloat(m.valor) || 0 }));
+    todasFotos = fotosData || [];
+    render();
+  } catch (e) {
+    document.getElementById('main-content').innerHTML =
+      `<div class="empty" style="color:var(--negative)">No se pudieron cargar los datos.<br><br>${e.message || e}<br><br>
+       <button onclick="refreshAll()" class="btn-primary" style="width:auto">Reintentar</button></div>`;
+  }
+}
+
+function showTab(tab) {
+  currentTab = tab;
+  selectedAutoId = null;
+  document.getElementById('nav-movimientos').classList.toggle('active', tab === 'movimientos');
+  document.getElementById('nav-autos').classList.toggle('active', tab === 'autos');
+  render();
+}
+
+function render() {
+  if (currentTab === 'movimientos') renderMovimientos();
+  else renderAutos();
+}
+
+// ── HELPERS DE NEGOCIO ───────────────────────────────────
+function movsDeAuto(autoId) { return movimientos.filter(m => m.auto_id === autoId); }
+function fotosDeAuto(autoId) { return todasFotos.filter(f => f.auto_id === autoId); }
+function finanzasAuto(autoId) {
+  const ms = movsDeAuto(autoId);
+  const compra = ms.filter(m => m.tipo === 'Compra').reduce((s,m)=>s+m.valor,0);
+  const gastos = ms.filter(m => m.tipo === 'Gasto').reduce((s,m)=>s+m.valor,0);
+  const venta  = ms.filter(m => m.tipo === 'Venta').reduce((s,m)=>s+m.valor,0);
+  const inversion = compra + gastos;
+  return { compra, gastos, venta, inversion, ganancia: venta > 0 ? (venta - inversion) : null };
+}
+function autosVendidos() { return autos.filter(a => finanzasAuto(a.id).venta > 0); }
+function autosEnStock() { return autos.filter(a => finanzasAuto(a.id).venta <= 0); }
+function fechasAuto(autoId) {
+  const ms = movsDeAuto(autoId);
+  const compra = ms.find(m => m.tipo === 'Compra');
+  const venta = ms.find(m => m.tipo === 'Venta');
+  return { fechaCompra: compra ? compra.fecha : null, fechaVenta: venta ? venta.fecha : null };
+}
+function diasEntre(f1, f2) {
+  if (!f1) return null;
+  const d1 = new Date(f1), d2 = f2 ? new Date(f2) : new Date();
+  if (isNaN(d1) || isNaN(d2)) return null;
+  return Math.max(0, Math.round((d2 - d1) / 86400000));
+}
+function retiroExiste(autoId, socio, excludeMovId) {
+  return movimientos.some(m => m.tipo === 'Retiro de Socio' && m.auto_id === autoId && m.pagado_por === socio && m.id !== excludeMovId);
+}
+function autosPendientesParaSocio(socio, excludeMovId) {
+  return autosVendidos().filter(a => !retiroExiste(a.id, socio, excludeMovId));
+}
+function autosPendientesParaAlgunoDe(sociosSet) {
+  return autosVendidos().filter(a => [...sociosSet].some(s => !retiroExiste(a.id, s, null)));
+}
+
+// ── TAB MOVIMIENTOS ───────────────────────────────────────
+function renderMovimientos() {
+  const c = document.getElementById('main-content');
+  c.innerHTML = `
+    <div class="head">
+      <div>
+        <h1>Movimientos</h1>
+        <p>${movimientos.length} registros</p>
+      </div>
+      <button class="btn-primary" onclick="openPanel('Compra')">+ Nuevo movimiento</button>
+    </div>
+    <div class="toolbar">
+      <input class="search" placeholder="Buscar por patente…" value="${filtroPatente}" oninput="onFiltroPatente(this.value)">
+      <div class="chip-filter">
+        ${['Todos','Compra','Venta','Gasto','Retiro'].map(t => `<div class="chip ${filtroTipo===t?'active':''}" onclick="onFiltroTipo('${t}')">${t}</div>`).join('')}
+      </div>
+    </div>
+    <div id="ledger-host"></div>
+  `;
+  renderLedger();
+}
+function onFiltroPatente(v) { filtroPatente = v; renderLedger(); }
+function onFiltroTipo(t) { filtroTipo = t; renderMovimientos(); }
+
+let sortFecha = 'desc';
+function toggleSortFecha() { sortFecha = sortFecha === 'desc' ? 'asc' : 'desc'; renderLedger(); }
+function pagadoPorHtml(p) {
+  if (!p || p === 'Fondo') return `<span class="pagador-fondo">Fondo</span>`;
+  return p.split(',').map(s => s.trim()).filter(Boolean).map(s => `<span class="badge socio">${s}</span>`).join(' ');
+}
+
+function renderLedger() {
+  const host = document.getElementById('ledger-host');
+  if (!host) return;
+  const tipoMatch = m => filtroTipo === 'Todos' || (filtroTipo === 'Retiro' ? m.tipo === 'Retiro de Socio' : m.tipo === filtroTipo);
+  const rows = movimientos.filter(m => {
+    if (!tipoMatch(m)) return false;
+    if (!filtroPatente) return true;
+    const a = autos.find(x => x.id === m.auto_id);
+    return a && a.patente.toLowerCase().includes(filtroPatente.toLowerCase());
+  }).sort((a, b) => {
+    const d = new Date(a.fecha) - new Date(b.fecha);
+    return sortFecha === 'asc' ? d : -d;
+  });
+  if (rows.length === 0) { host.innerHTML = '<div class="empty">Sin movimientos.</div>'; return; }
+  host.innerHTML = `
+    <table class="ledger">
+      <thead><tr><th>Tipo</th><th>Auto</th><th class="sortable" onclick="toggleSortFecha()">Fecha ${sortFecha==='asc'?'↑':'↓'}</th><th>Pagado por</th><th class="num">Valor</th></tr></thead>
+      <tbody>
+        ${rows.map(m => {
+          const a = autos.find(x => x.id === m.auto_id);
+          const tipoClass = m.tipo === 'Retiro de Socio' ? 'retiro' : m.tipo.toLowerCase();
+          const autoTxt = a ? `<span class="plate">${a.patente}</span> ${a.marca||''} ${a.modelo||''}` : (m.descripcion || '—');
+          return `<tr onclick="openPanel('${m.tipo}', ${m.id})">
+            <td><span class="badge ${tipoClass}">${m.tipo === 'Retiro de Socio' ? 'Retiro' : m.tipo}</span></td>
+            <td>${autoTxt}</td>
+            <td class="tabular">${formatFecha(m.fecha)}</td>
+            <td>${pagadoPorHtml(m.pagado_por)}</td>
+            <td class="num amt">${fmt(m.valor)}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
+}
+
+// ── PANEL: alta / edición de movimiento ──────────────────
+function openPanel(tipo, movId, presetId) {
+  retiroSocio = SOCIOS[0];
+  retiroEditingId = null;
+  retiroSociosSel = null;
+  presetAutoId = movId ? null : (presetId || null);
+  let ov = document.getElementById('ov');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.className = 'overlay';
+    ov.id = 'ov';
+    // Sin cierre al clickear afuera: evita perder una edición en curso por un click accidental.
+    document.body.appendChild(ov);
+  }
+  const editing = movId ? movimientos.find(m => m.id === movId) : null;
+  if (editing && editing.tipo === 'Retiro de Socio') {
+    retiroSocio = editing.pagado_por || SOCIOS[0];
+    retiroEditingId = editing.id;
+  }
+  ov.innerHTML = `<div class="panel" id="panel-body">${panelHtml(tipo, editing)}</div>`;
+  wireForm();
+}
+function closePanel() {
+  const ov = document.getElementById('ov');
+  if (ov) ov.remove();
+}
+function switchType(tipo) {
+  openPanel(tipo, null, presetAutoId);
+}
+function wireForm() {
+  attachMontoFormatting('f-valor');
+  attachMontoFormatting('f-km');
+}
+
+function panelHtml(tipo, editing) {
+  const titles = { Compra: 'Compra', Venta: 'Venta', Gasto: 'Gasto', 'Retiro de Socio': 'Retiro de socio' };
+  return `
+    <div class="panel-head"><h2>${editing ? 'Editar ' + titles[tipo].toLowerCase() : titles[tipo]}</h2><button class="panel-close" onclick="closePanel()">✕</button></div>
+    <div id="panel-msg"></div>
+    ${editing ? '' : `<div class="seg">
+      ${TIPOS.map(t => `<button class="${t===tipo?'active':''}" data-tipo="${t}" onclick="switchType('${t}')">${t==='Retiro de Socio'?'Retiro':t}</button>`).join('')}
+    </div>`}
+    ${formBody(tipo, editing)}
+  `;
+}
+
+function formBody(tipo, editing) {
+  if (tipo === 'Compra') return compraForm(editing);
+  if (tipo === 'Venta') return ventaForm(editing);
+  if (tipo === 'Gasto') return gastoForm(editing);
+  return retiroForm(editing);
+}
+
+// ── Pagado por: Fondo por defecto, multi-selección de socios ──
+function payerBlock(editing, opts) {
+  opts = opts || {};
+  const label = opts.label || 'Pagado por';
+  const subFondo = opts.subFondo || 'de la empresa';
+  const altText = opts.altText || '¿Pagó uno o más socios en su lugar?';
+  const current = editing ? (editing.pagado_por || 'Fondo') : 'Fondo';
+  const isFondo = current === 'Fondo';
+  const selectedSocios = isFondo ? [] : current.split(',').map(s => s.trim()).filter(s => SOCIOS.includes(s));
+  return `
+    <div class="f-group">
+      <label class="f-label">${label}</label>
+      <div class="payer-fondo ${isFondo ? 'active' : ''}" id="payer-fondo" onclick="selectFondo()">
+        <span class="check">✓</span>
+        <span class="txt"><span class="t1">Fondo</span><span class="t2">${subFondo}</span></span>
+      </div>
+      <button type="button" class="payer-alt-toggle" onclick="toggleAlt()">${altText}</button>
+      <div class="payer-alt-row" id="payer-alt-row" style="display:${isFondo ? 'none' : 'flex'}">
+        ${SOCIOS.map(s => `<div class="payer-alt-btn ${selectedSocios.includes(s)?'active':''}" data-socio="${s}" onclick="toggleAltSocio('${s}')">${s}</div>`).join('')}
+      </div>
+    </div>`;
+}
+function toggleAlt() {
+  const row = document.getElementById('payer-alt-row');
+  row.style.display = row.style.display === 'none' ? 'flex' : 'none';
+}
+function toggleAltSocio(socio) {
+  document.getElementById('payer-fondo').classList.remove('active');
+  const btn = [...document.querySelectorAll('#payer-alt-row .payer-alt-btn')].find(b => b.dataset.socio === socio);
+  if (btn) btn.classList.toggle('active');
+}
+function selectFondo() {
+  document.getElementById('payer-fondo').classList.add('active');
+  document.querySelectorAll('#payer-alt-row .payer-alt-btn').forEach(b => b.classList.remove('active'));
+}
+function readPagadoPor() {
+  if (document.getElementById('payer-fondo').classList.contains('active')) return 'Fondo';
+  const selected = [...document.querySelectorAll('#payer-alt-row .payer-alt-btn.active')].map(b => b.dataset.socio);
+  return selected.length ? selected.join(', ') : 'Fondo';
+}
+
+// ── Costos de un auto (Compra + Gastos), para Venta/Gasto ──
+function costosListHtml(autoId, maxHeight) {
+  if (!autoId) return `<div class="f-empty">Elegí un auto para ver sus gastos.</div>`;
+  const ms = movsDeAuto(autoId).filter(m => m.tipo === 'Compra' || m.tipo === 'Gasto')
+    .slice().sort((a,b) => {
+      const d = new Date(a.fecha) - new Date(b.fecha);
+      if (d !== 0) return d;
+      if (a.tipo === b.tipo) return 0;
+      return a.tipo === 'Compra' ? -1 : 1;
+    });
+  if (ms.length === 0) return `<div class="f-empty">Sin gastos cargados para este auto.</div>`;
+  const style = maxHeight ? ` style="max-height:${maxHeight}px"` : '';
+  return `<div class="cost-list"${style}>${ms.map(m => `
+    <div class="cost-item">
+      <div class="ci-top">
+        <span class="badge ${m.tipo==='Compra'?'compra':'gasto'}">${m.tipo}</span>
+        <span class="desc">${m.tipo==='Compra' ? 'Compra del auto' : (m.descripcion || '—')}</span>
+      </div>
+      <div class="ci-bottom">
+        <span class="date tabular">${formatFecha(m.fecha)}</span>
+        <span class="val amt">${fmt(m.valor)}</span>
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+// ── Combobox de auto (Venta / Gasto) ──────────────────────
+function comboItems(context) {
+  if (context === 'venta') {
+    const stock = autosEnStock();
+    const input = document.getElementById('f-auto');
+    const currentId = input ? parseInt(input.dataset.autoId, 10) : NaN;
+    const extra = autos.find(a => a.id === currentId);
+    return extra && !stock.some(x => x.id === extra.id) ? [extra, ...stock] : stock;
+  }
+  return autos; // gasto: todos, se distingue con el badge Stock/Vendido
+}
+function renderComboList(context, query) {
+  const host = document.getElementById('combo-list-' + context);
+  if (!host) return;
+  const q = (query || '').trim().toLowerCase();
+  const items = comboItems(context);
+  const filtered = q ? items.filter(a => autoLabel(a).toLowerCase().includes(q)) : items;
+  if (filtered.length === 0) {
+    host.innerHTML = '<div class="combo-empty">Sin resultados.</div>';
+  } else {
+    host.innerHTML = filtered.slice(0, 30).map(a => {
+      const vendido = finanzasAuto(a.id).venta > 0;
+      const thumb = context === 'venta' ? comboThumb(a) : '';
+      return `<div class="combo-item" onclick="selectCombo('${context}', ${a.id})">
+        <span style="display:flex;align-items:center;gap:9px">${thumb}<span><span class="plate">${a.patente}</span> <span class="ci-name">${a.marca||''} ${a.modelo||''}</span></span></span>
+        <span class="badge ${vendido?'vendido':'stock'}">${vendido?'Vendido':'Stock'}</span>
+      </div>`;
+    }).join('');
+  }
+  host.classList.remove('hidden');
+}
+function comboThumb(a) {
+  const foto = fotosDeAuto(a.id)[0];
+  return foto ? `<img src="${foto.url}" class="combo-thumb" loading="lazy">` : `<div class="combo-thumb combo-thumb-empty">🚗</div>`;
+}
+function onComboInput(context) {
+  const input = document.getElementById('f-auto');
+  input.dataset.autoId = '';
+  renderComboList(context, input.value);
+  if (context === 'venta') updateVentaFromAuto(null);
+  if (context === 'gasto') updateGastoFromAuto(null);
+}
+function onComboFocus(context) {
+  const input = document.getElementById('f-auto');
+  renderComboList(context, input.value);
+}
+function selectCombo(context, autoId) {
+  const input = document.getElementById('f-auto');
+  const a = autos.find(x => x.id === autoId);
+  input.value = autoLabel(a);
+  input.dataset.autoId = autoId;
+  const list = document.getElementById('combo-list-' + context);
+  if (list) list.classList.add('hidden');
+  if (context === 'venta') updateVentaFromAuto(autoId);
+  if (context === 'gasto') updateGastoFromAuto(autoId);
+}
+document.addEventListener('click', (e) => {
+  document.querySelectorAll('.combo-list').forEach(list => {
+    const wrap = list.closest('.combo-wrap');
+    if (wrap && !wrap.contains(e.target)) list.classList.add('hidden');
+  });
+});
+
+// ── Formularios por tipo ──────────────────────────────────
+function compraForm(editing) {
+  const a = editing ? autos.find(x => x.id === editing.auto_id) : null;
+  return `
+    <div class="f-row">
+      <div class="f-group"><label class="f-label">Patente</label><input class="f-input" id="f-patente" value="${a?a.patente:''}" placeholder="AB123CD"></div>
+      <div class="f-group"><label class="f-label">Marca</label><input class="f-input" id="f-marca" value="${a?a.marca||'':''}"></div>
+    </div>
+    <div class="f-group"><label class="f-label">Modelo</label><input class="f-input" id="f-modelo" value="${a?a.modelo||'':''}"></div>
+    <div class="f-row c3">
+      <div class="f-group"><label class="f-label">Año</label><input class="f-input" id="f-anio" value="${a&&a.anio?a.anio:''}"></div>
+      <div class="f-group"><label class="f-label">Color</label><input class="f-input" id="f-color" value="${a?a.color||'':''}"></div>
+      <div class="f-group"><label class="f-label">Kilometraje</label><input class="f-input" id="f-km" value="${fmtInt(a&&a.kilometraje?a.kilometraje:'')}"></div>
+    </div>
+    <div class="f-row">
+      <div class="f-group"><label class="f-label">Fecha</label><input type="date" class="f-input" id="f-fecha" value="${editing?isoDateOnly(editing.fecha):todayISO()}"></div>
+      <div class="f-group"><label class="f-label">Valor (ARS)</label><input class="f-input" id="f-valor" value="${editing?fmtInt(editing.valor):''}" placeholder="0"></div>
+    </div>
+    ${fotosCompraBlock(editing, a)}
+    ${payerBlock(editing)}
+    ${actionButtons('Compra', editing)}
+  `;
+}
+// Las fotos solo se cargan al dar de alta la Compra. Al editar, se informa el estado
+// y se manda a la tab Autos — ahí es donde se agregan o borran fotos ya existentes.
+function fotosCompraBlock(editing, a) {
+  if (!editing) {
+    return `<div class="f-group"><label class="f-label">Fotos (opcional)</label>
+      <input type="file" accept="image/*" multiple id="f-fotos" class="f-input" style="padding:8px 10px">
+    </div>`;
+  }
+  const n = a ? fotosDeAuto(a.id).length : 0;
+  const texto = n ? `Tiene ${n} foto${n>1?'s':''} cargada${n>1?'s':''}.` : 'Todavía no tiene fotos.';
+  return `<div class="f-group"><label class="f-label">Fotos</label>
+    <div class="existing-fotos-note">${texto} Para agregar o borrar, andá a la tab <b>Autos</b>${a?` → ${a.patente}`:''}.</div>
+  </div>`;
+}
+
+function gastoStatHtml(fin) {
+  if (!fin) return `<div class="f-empty">Elegí un auto para ver sus costos hasta ahora.</div>`;
+  return `<div class="stat-card"><div class="stat-grid" style="grid-template-columns:repeat(3,1fr)">
+    <div class="stat"><div class="stat-l">Compra</div><div class="stat-v">${fmt(fin.compra)}</div></div>
+    <div class="stat"><div class="stat-l">Gastos</div><div class="stat-v">${fmt(fin.gastos)}</div></div>
+    <div class="stat"><div class="stat-l">Inversión</div><div class="stat-v">${fmt(fin.inversion)}</div></div>
+  </div></div>`;
+}
+function gastoForm(editing) {
+  const a = editing ? autos.find(x => x.id === editing.auto_id) : (presetAutoId ? autos.find(x => x.id === presetAutoId) : null);
+  const fin = a ? finanzasAuto(a.id) : null;
+  return `
+    <div class="f-group combo-wrap"><label class="f-label">Auto</label>
+      <input class="f-input" id="f-auto" data-auto-id="${a?a.id:''}" value="${a?autoLabel(a):''}" placeholder="Buscar por patente, marca o modelo…" autocomplete="off" oninput="onComboInput('gasto')" onfocus="onComboFocus('gasto')">
+      <div class="combo-list hidden" id="combo-list-gasto"></div>
+    </div>
+    <div id="gasto-stat">${gastoStatHtml(fin)}</div>
+    <div id="gasto-costos">${costosListHtml(a?a.id:null)}</div>
+    <div class="f-group"><label class="f-label">Descripción</label><input class="f-input" id="f-desc" value="${editing?(editing.descripcion||''):''}"></div>
+    <div class="f-row">
+      <div class="f-group"><label class="f-label">Fecha</label><input type="date" class="f-input" id="f-fecha" value="${editing?isoDateOnly(editing.fecha):todayISO()}"></div>
+      <div class="f-group"><label class="f-label">Valor (ARS)</label><input class="f-input" id="f-valor" value="${editing?fmtInt(editing.valor):''}" placeholder="0"></div>
+    </div>
+    ${payerBlock(editing)}
+    ${actionButtons('Gasto', editing)}
+  `;
+}
+function updateGastoFromAuto(autoId) {
+  const fin = autoId ? finanzasAuto(autoId) : null;
+  document.getElementById('gasto-stat').innerHTML = gastoStatHtml(fin);
+  document.getElementById('gasto-costos').innerHTML = costosListHtml(autoId);
+}
+
+function ventaStatHtml(fin, ganancia, auto) {
+  if (!fin) return `<div class="stat-card"><div class="f-empty" style="padding:0">Elegí un auto para ver Compra, Gastos e Inversión.</div></div>`;
+  const g = ganancia === null || isNaN(ganancia) ? null : ganancia;
+  const foto = auto ? fotosDeAuto(auto.id)[0] : null;
+  const thumbHtml = foto ? `<img src="${foto.url}" class="venta-photo" loading="lazy">` : `<div class="venta-photo venta-photo-empty">🚗</div>`;
+  const compraMov = auto ? movsDeAuto(auto.id).find(m => m.tipo === 'Compra') : null;
+  return `<div class="stat-card"><div style="display:flex;gap:14px;align-items:flex-start">
+    ${thumbHtml}
+    <div style="flex:1;min-width:0">
+      <div class="stat-grid" style="grid-template-columns:repeat(2,1fr);row-gap:14px">
+        <div class="stat"><div class="stat-l">Compra</div><div class="stat-v">${fmt(fin.compra)}</div></div>
+        <div class="stat"><div class="stat-l">Gastos</div><div class="stat-v">${fmt(fin.gastos)}</div></div>
+        <div class="stat"><div class="stat-l">Inversión</div><div class="stat-v">${fmt(fin.inversion)}</div></div>
+        <div class="stat ganancia"><div class="stat-l">Ganancia</div><div class="stat-v ${g!==null&&g<0?'neg':''}">${g===null?'—':(g>=0?'+':'')+fmt(g)}</div></div>
+      </div>
+      ${compraMov ? `<div class="f-empty" style="padding:8px 0 0">Comprado con ${pagadoPorHtml(compraMov.pagado_por)}</div>` : ''}
+    </div>
+  </div></div>`;
+}
+function ventaForm(editing) {
+  const a = editing ? autos.find(x => x.id === editing.auto_id) : (presetAutoId ? autos.find(x => x.id === presetAutoId) : null);
+  const fin = a ? finanzasAuto(a.id) : null;
+  const gananciaInicial = a ? (editing.valor - fin.inversion) : null;
+  return `
+    <div class="f-group combo-wrap"><label class="f-label">Auto</label>
+      <input class="f-input" id="f-auto" data-auto-id="${a?a.id:''}" value="${a?autoLabel(a):''}" placeholder="Buscar por patente, marca o modelo…" autocomplete="off" oninput="onComboInput('venta')" onfocus="onComboFocus('venta')">
+      <div class="combo-list hidden" id="combo-list-venta"></div>
+    </div>
+    <div id="venta-stat">${ventaStatHtml(fin, gananciaInicial, a)}</div>
+    <div id="venta-costos">${costosListHtml(a?a.id:null)}</div>
+    <div class="f-row">
+      <div class="f-group"><label class="f-label">Fecha</label><input type="date" class="f-input" id="f-fecha" value="${editing?isoDateOnly(editing.fecha):todayISO()}"></div>
+      <div class="f-group"><label class="f-label">Valor de venta (ARS)</label><input class="f-input" id="f-valor" value="${editing?fmtInt(editing.valor):''}" placeholder="0" oninput="onVentaValorChange()"></div>
+    </div>
+    ${payerBlock(editing, { label: 'Destino del dinero', subFondo: 'vuelve al fondo', altText: '¿Va a algún socio en particular?' })}
+    ${actionButtons('Venta', editing)}
+  `;
+}
+function updateVentaFromAuto(autoId) {
+  const auto = autoId ? autos.find(x => x.id === autoId) : null;
+  const fin = auto ? finanzasAuto(auto.id) : null;
+  const valorEl = document.getElementById('f-valor');
+  const valor = valorEl ? parseMonto(valorEl.value) : 0;
+  const ganancia = fin ? (valor - fin.inversion) : null;
+  document.getElementById('venta-stat').innerHTML = ventaStatHtml(fin, ganancia, auto);
+  document.getElementById('venta-costos').innerHTML = costosListHtml(autoId);
+}
+function onVentaValorChange() {
+  const input = document.getElementById('f-auto');
+  const autoId = input ? parseInt(input.dataset.autoId, 10) : NaN;
+  if (!autoId) return;
+  const auto = autos.find(x => x.id === autoId);
+  const fin = finanzasAuto(autoId);
+  const valor = parseMonto(document.getElementById('f-valor').value);
+  document.getElementById('venta-stat').innerHTML = ventaStatHtml(fin, valor - fin.inversion, auto);
+}
+
+// ── Retiro de socio ────────────────────────────────────────
+function montoSugerido(autoId) {
+  const fin = finanzasAuto(autoId);
+  return fin.ganancia !== null ? Math.round(fin.ganancia / 3) : '';
+}
+
+// Edición de un retiro existente: socio fijo, un solo auto.
+function retiroPickHtmlEdit(pendientes, selectedId) {
+  if (pendientes.length === 0) return `<div class="f-empty">No hay autos vendidos con reparto pendiente para ${retiroSocio}.</div>`;
+  const selectHtml = `<select class="f-input" id="f-retiro-auto" onchange="onRetiroAutoChangeEdit(this.value)">
+    ${pendientes.map(a => `<option value="${a.id}" ${a.id===selectedId?'selected':''}>${autoLabel(a)}</option>`).join('')}
+  </select>`;
+  const a = pendientes.find(x => x.id === selectedId) || pendientes[0];
+  const fin = finanzasAuto(a.id);
+  return `
+    <div class="f-group" style="margin-bottom:10px">${selectHtml}</div>
+    <div class="retiro-pick">
+      <div class="car"><span class="plate">${a.patente}</span> ${a.marca||''} ${a.modelo||''}</div>
+      <div class="rp-ganancia"><span>Ganancia total del auto</span><span class="rp-ganancia-v">${fmt(fin.ganancia||0)}</span></div>
+      <div class="rp-split">
+        ${SOCIOS.map(s => {
+          const done = retiroExiste(a.id, s, retiroEditingId);
+          return `<span class="pill ${done?'done':'pending'}">${s} — ${done?'retirado':'pendiente'}</span>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+function onRetiroAutoChangeEdit(autoId) {
+  autoId = parseInt(autoId, 10);
+  const pendientes = autosPendientesParaSocio(retiroSocio, retiroEditingId);
+  document.getElementById('retiro-pick-host').innerHTML = retiroPickHtmlEdit(pendientes, autoId);
+}
+
+// Alta nueva: uno o más socios a la vez.
+function retiroPickHtmlNuevo(pendientes, selectedId) {
+  if (pendientes.length === 0) return `<div class="f-empty">No hay autos vendidos con reparto pendiente para los socios elegidos.</div>`;
+  const selectHtml = `<select class="f-input" id="f-retiro-auto" onchange="onRetiroAutoChangeNuevo(this.value)">
+    ${pendientes.map(a => `<option value="${a.id}" ${a.id===selectedId?'selected':''}>${autoLabel(a)}</option>`).join('')}
+  </select>`;
+  const a = pendientes.find(x => x.id === selectedId) || pendientes[0];
+  const fin = finanzasAuto(a.id);
+  return `
+    <div class="f-group" style="margin-bottom:10px">${selectHtml}</div>
+    <div class="retiro-pick">
+      <div class="car"><span class="plate">${a.patente}</span> ${a.marca||''} ${a.modelo||''}</div>
+      <div class="rp-ganancia"><span>Ganancia total del auto</span><span class="rp-ganancia-v">${fmt(fin.ganancia||0)}</span></div>
+      <div class="rp-split">
+        ${SOCIOS.map(s => {
+          const done = retiroExiste(a.id, s, null);
+          return `<span class="pill ${done?'done':'pending'}">${s} — ${done?'retirado':'pendiente'}</span>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+function toggleRetiroSocio(socio) {
+  if (retiroSociosSel.has(socio)) retiroSociosSel.delete(socio); else retiroSociosSel.add(socio);
+  document.querySelectorAll('.socio-row .socio-btn').forEach(b => b.classList.toggle('active', retiroSociosSel.has(b.dataset.socio)));
+  const pendientes = autosPendientesParaAlgunoDe(retiroSociosSel);
+  const selectedId = pendientes[0] ? pendientes[0].id : null;
+  document.getElementById('retiro-pick-host').innerHTML = retiroPickHtmlNuevo(pendientes, selectedId);
+  document.getElementById('f-valor').value = selectedId ? fmtInt(montoSugerido(selectedId)) : '';
+}
+function onRetiroAutoChangeNuevo(autoId) {
+  autoId = parseInt(autoId, 10);
+  document.getElementById('retiro-pick-host').innerHTML = retiroPickHtmlNuevo(autosPendientesParaAlgunoDe(retiroSociosSel), autoId);
+  document.getElementById('f-valor').value = fmtInt(montoSugerido(autoId));
+}
+
+function retiroForm(editing) {
+  if (editing) {
+    const pendientes = autosPendientesParaSocio(retiroSocio, retiroEditingId);
+    const selectedId = editing.auto_id;
+    return `
+      <div class="f-group"><label class="f-label">Socio</label>
+        <div class="f-input" style="background:var(--bg-3);cursor:default">${retiroSocio}</div>
+      </div>
+      <div class="f-group"><label class="f-label">Auto vendido — reparto pendiente para ${retiroSocio}</label>
+        <div id="retiro-pick-host">${retiroPickHtmlEdit(pendientes, selectedId)}</div>
+      </div>
+      <div class="f-row">
+        <div class="f-group"><label class="f-label">Fecha</label><input type="date" class="f-input" id="f-fecha" value="${isoDateOnly(editing.fecha)}"></div>
+        <div class="f-group"><label class="f-label">Monto (ARS)</label><input class="f-input" id="f-valor" value="${fmtInt(editing.valor)}"></div>
+      </div>
+      ${actionButtons('Retiro de Socio', editing)}
+    `;
+  }
+  if (!retiroSociosSel) retiroSociosSel = new Set(SOCIOS);
+  const pendientes = autosPendientesParaAlgunoDe(retiroSociosSel);
+  const selectedId = pendientes[0] ? pendientes[0].id : null;
+  return `
+    <div class="f-group"><label class="f-label">¿Quién confirma el retiro?</label>
+      <div class="socio-row">
+        ${SOCIOS.map(s => `<div class="socio-btn ${retiroSociosSel.has(s)?'active':''}" data-socio="${s}" onclick="toggleRetiroSocio('${s}')">${s}</div>`).join('')}
+      </div>
+    </div>
+    <div class="f-group"><label class="f-label">Auto vendido con reparto pendiente</label>
+      <div id="retiro-pick-host">${retiroPickHtmlNuevo(pendientes, selectedId)}</div>
+    </div>
+    <div class="f-row">
+      <div class="f-group"><label class="f-label">Fecha</label><input type="date" class="f-input" id="f-fecha" value="${todayISO()}"></div>
+      <div class="f-group">
+        <label class="f-label">Monto por socio (ARS)</label>
+        <input class="f-input" id="f-valor" value="${selectedId?fmtInt(montoSugerido(selectedId)):''}">
+        <div style="font-size:12px;color:var(--ink-3);margin-top:5px">Sugerido: ganancia ÷ 3</div>
+      </div>
+    </div>
+    <button class="btn-submit" onclick="saveRetiroNuevo(this)">Confirmar retiro</button>
+  `;
+}
+
+async function saveRetiroNuevo(btn) {
+  const msgEl = document.getElementById('panel-msg');
+  const fecha = document.getElementById('f-fecha').value;
+  const monto = parseMonto(document.getElementById('f-valor').value);
+  const autoEl = document.getElementById('f-retiro-auto');
+  if (!fecha || !monto || !autoEl || !autoEl.value) { msgEl.innerHTML = '<div class="msg err">Completá fecha, monto y auto.</div>'; return; }
+  const autoId = parseInt(autoEl.value, 10);
+  const targets = [...retiroSociosSel].filter(s => !retiroExiste(autoId, s, null));
+  if (targets.length === 0) { msgEl.innerHTML = '<div class="msg err">Los socios elegidos ya tienen este auto retirado.</div>'; return; }
+  setLoading(btn, true, 'Guardando…');
+  try {
+    const rows = targets.map(s => ({ tipo: 'Retiro de Socio', fecha, valor: monto, pagado_por: s, auto_id: autoId, descripcion: null }));
+    const { error } = await supabaseClient.from('movimientos').insert(rows);
+    if (error) throw error;
+    closePanel();
+    await refreshAll();
+  } catch (e) {
+    msgEl.innerHTML = `<div class="msg err">Error: ${e.message || e}</div>`;
+  } finally {
+    setLoading(btn, false);
+  }
+}
+
+function actionButtons(tipo, editing) {
+  if (editing) {
+    return `<div class="btn-row">
+      <button class="btn-submit" style="flex:1" onclick="saveMovimiento('${tipo}', ${editing.id}, this)">Guardar cambios</button>
+    </div>
+    <button class="btn-danger" style="width:100%" onclick="deleteMovimiento(${editing.id}, this)">Eliminar</button>`;
+  }
+  return `<button class="btn-submit" onclick="saveMovimiento('${tipo}', null, this)">Guardar</button>`;
+}
+
+// Algunos archivos (ej. fotos de iCloud no descargadas del todo) reportan un tamaño
+// correcto pero todavía no tienen contenido real disponible. Reintenta leerlos antes
+// de subir, dándole tiempo al sistema operativo a terminar de bajarlos.
+async function readFileWithRetry(file, attempts = 5, delayMs = 1000) {
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const buf = await file.arrayBuffer();
+      if (buf && buf.byteLength > 0) return buf;
+    } catch (e) { /* reintenta */ }
+    if (i < attempts - 1) await new Promise(r => setTimeout(r, delayMs));
+  }
+  return null;
+}
+
+// Sube las fotos que puede; las que fallan (ej. no terminaron de descargarse) se omiten
+// sin cortar el resto. Devuelve los nombres de las que no se pudieron subir.
+async function uploadFotosParaAuto(autoId, files) {
+  const fallidas = [];
+  for (const file of Array.from(files)) {
+    if (!file) continue;
+    const buf = await readFileWithRetry(file);
+    if (!buf) { fallidas.push(file.name); continue; }
+    const path = `${autoId}/${Date.now()}-${file.name}`;
+    const { error: eUp } = await supabaseClient.storage.from('auto-fotos').upload(path, buf, { contentType: file.type || 'image/jpeg' });
+    if (eUp) { fallidas.push(file.name); continue; }
+    const { data: pub } = supabaseClient.storage.from('auto-fotos').getPublicUrl(path);
+    const { error: eIns } = await supabaseClient.from('auto_fotos').insert({ auto_id: autoId, url: pub.publicUrl });
+    if (eIns) fallidas.push(file.name);
+  }
+  return fallidas;
+}
+
+async function saveMovimiento(tipo, existingId, btn) {
+  const msgEl = document.getElementById('panel-msg');
+  const fecha = document.getElementById('f-fecha').value;
+  const valor = parseMonto(document.getElementById('f-valor').value);
+  if (!fecha || !valor) { msgEl.innerHTML = '<div class="msg err">Completá fecha y valor.</div>'; return; }
+
+  setLoading(btn, true, 'Guardando…');
+  try {
+    let autoId = null;
+    let pagadoPor = null;
+    let descripcion = null;
+
+    if (tipo === 'Compra') {
+      const patente = document.getElementById('f-patente').value.trim().toUpperCase();
+      if (!patente) { msgEl.innerHTML = '<div class="msg err">Falta la patente.</div>'; return; }
+      const marca = document.getElementById('f-marca').value.trim();
+      const modelo = document.getElementById('f-modelo').value.trim();
+      const anio = document.getElementById('f-anio').value;
+      const color = document.getElementById('f-color').value.trim();
+      const km = document.getElementById('f-km').value;
+      const { data: autoRow, error: e1 } = await supabaseClient
+        .from('autos')
+        .upsert({ patente, marca, modelo, anio: anio?parseInt(anio,10):null, color: color||null, kilometraje: km?parseMonto(km):null }, { onConflict: 'patente' })
+        .select('id').single();
+      if (e1) throw e1;
+      autoId = autoRow.id;
+      pagadoPor = readPagadoPor();
+    } else if (tipo === 'Venta' || tipo === 'Gasto') {
+      const autoInput = document.getElementById('f-auto');
+      autoId = autoInput && autoInput.dataset.autoId ? parseInt(autoInput.dataset.autoId, 10) : null;
+      if (!autoId) { msgEl.innerHTML = '<div class="msg err">Seleccioná un auto de la lista.</div>'; return; }
+      pagadoPor = readPagadoPor();
+      if (tipo === 'Gasto') descripcion = document.getElementById('f-desc').value.trim() || null;
+    } else {
+      // Retiro de Socio: solo edición llega acá (el alta nueva usa saveRetiroNuevo)
+      const autoEl = document.getElementById('f-retiro-auto');
+      if (!autoEl || !autoEl.value) { msgEl.innerHTML = '<div class="msg err">No hay auto seleccionado.</div>'; return; }
+      autoId = parseInt(autoEl.value, 10);
+      pagadoPor = retiroSocio;
+    }
+
+    const payload = { tipo, fecha, valor, pagado_por: pagadoPor, auto_id: autoId, descripcion };
+
+    if (existingId) {
+      const { error } = await supabaseClient.from('movimientos').update(payload).eq('id', existingId);
+      if (error) throw error;
+    } else {
+      const { error } = await supabaseClient.from('movimientos').insert(payload);
+      if (error) throw error;
+    }
+
+    if (tipo === 'Compra' && !existingId) {
+      const fotoInput = document.getElementById('f-fotos');
+      if (fotoInput && fotoInput.files && fotoInput.files.length) {
+        const fallidas = await uploadFotosParaAuto(autoId, fotoInput.files);
+        if (fallidas.length) {
+          showToast(`No se pudieron subir ${fallidas.length} foto(s): ${fallidas.join(', ')}. Volvé a intentarlo desde la ficha del auto en la tab Autos.`, 'err');
+        }
+      }
+    }
+
+    closePanel();
+    await refreshAll();
+  } catch (e) {
+    msgEl.innerHTML = `<div class="msg err">Error: ${e.message || e}</div>`;
+  }
+}
+
+async function deleteMovimiento(id, btn) {
+  if (!(await confirmDialog('¿Eliminar este movimiento? Esta acción no se puede deshacer.'))) return;
+  const msgEl = document.getElementById('panel-msg');
+  setLoading(btn, true, 'Eliminando…');
+  try {
+    const { error } = await supabaseClient.from('movimientos').delete().eq('id', id);
+    if (error) throw error;
+    closePanel();
+    await refreshAll();
+  } catch (e) {
+    msgEl.innerHTML = `<div class="msg err">Error: ${e.message || e}</div>`;
+  } finally {
+    setLoading(btn, false);
+  }
+}
+
+// ── TAB AUTOS ─────────────────────────────────────────────
+function onFiltroAutoEstado(t) { filtroAutoEstado = t; renderAutos(); }
+
+function autoCardHtml(a) {
+  const fin = finanzasAuto(a.id);
+  const vendido = fin.venta > 0;
+  const foto = fotosDeAuto(a.id)[0];
+  const thumb = foto ? `<img class="auto-thumb" src="${foto.url}" loading="lazy">` : `<div class="auto-thumb-empty">🚗</div>`;
+  const { fechaCompra, fechaVenta } = fechasAuto(a.id);
+  const dias = diasEntre(fechaCompra, vendido ? fechaVenta : null);
+  const diasTxt = dias === null ? '' : (vendido ? `Vendido en ${dias} día${dias===1?'':'s'}` : `${dias} día${dias===1?'':'s'} en stock`);
+  const metrics = vendido ? `
+    <div class="auto-card-metric"><div class="l">Venta</div><div class="v">${fmt(fin.venta)}</div></div>
+    <div class="auto-card-metric"><div class="l">Ganancia</div><div class="v ${fin.ganancia<0?'neg':'pos'}">${fin.ganancia>=0?'+':''}${fmt(fin.ganancia)}</div></div>
+  ` : `
+    <div class="auto-card-metric"><div class="l">Invertido</div><div class="v">${fmt(fin.inversion)}</div></div>
+  `;
+  return `<div class="auto-card" onclick="openAuto(${a.id})">
+    ${thumb}
+    <div class="auto-card-info">
+      <div class="auto-card-title">${a.marca||''} ${a.modelo||''}</div>
+      <div class="auto-card-sub"><span class="plate">${a.patente}</span>${a.anio?` · ${a.anio}`:''}${a.color?` · ${a.color}`:''}</div>
+      ${diasTxt ? `<div class="auto-card-dias ${vendido?'done':''}">${diasTxt}</div>` : ''}
+    </div>
+    <span class="badge badge-fixed ${vendido?'vendido':'stock'}">${vendido?'Vendido':'Stock'}</span>
+    <div class="auto-card-metrics">${metrics}</div>
+  </div>`;
+}
+
+function renderAutos() {
+  const c = document.getElementById('main-content');
+  if (selectedAutoId) { renderAutoDetalle(); return; }
+  const filtered = autos.filter(a => {
+    if (filtroAutoEstado === 'Todos') return true;
+    const vendido = finanzasAuto(a.id).venta > 0;
+    return filtroAutoEstado === 'Vendidos' ? vendido : !vendido;
+  });
+  c.innerHTML = `
+    <div class="head"><div><h1>Autos</h1><p>${autos.length} autos cargados</p></div></div>
+    <div class="chip-filter" style="margin-bottom:16px">
+      ${['Todos','Stock','Vendidos'].map(t => `<div class="chip ${filtroAutoEstado===t?'active':''}" onclick="onFiltroAutoEstado('${t}')">${t}</div>`).join('')}
+    </div>
+    ${filtered.length === 0 ? '<div class="empty">Sin autos.</div>' : filtered.map(autoCardHtml).join('')}
+  `;
+}
+
+function openAuto(id) {
+  selectedAutoId = id;
+  autoFotos = fotosDeAuto(id);
+  renderAutoDetalle();
+}
+
+function renderAutoDetalle() {
+  const auto = autos.find(a => a.id === selectedAutoId);
+  const c = document.getElementById('main-content');
+  if (!auto) { selectedAutoId = null; renderAutos(); return; }
+  const fin = finanzasAuto(auto.id);
+  const vendido = fin.venta > 0;
+  const { fechaCompra, fechaVenta } = fechasAuto(auto.id);
+  const dias = diasEntre(fechaCompra, vendido ? fechaVenta : null);
+  const infoLine = [auto.anio, auto.color, auto.kilometraje ? `${fmtInt(auto.kilometraje)} km` : null].filter(Boolean).join(' · ');
+  c.innerHTML = `
+    <span class="back-link" onclick="closeAuto()">← Volver</span>
+    <div class="ficha-wrap">
+    <div class="head">
+      <div>
+        <h1>${auto.marca||''} ${auto.modelo||''}</h1>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:6px">
+          <span class="plate-lg">${auto.patente}</span>
+          ${infoLine ? `<span class="tabular" style="color:var(--ink-2);font-size:14px">${infoLine}</span>` : ''}
+        </div>
+      </div>
+      <div class="ficha-actions">
+        <span class="badge ${vendido?'vendido':'stock'}">${vendido?'Vendido':'Stock'}</span>
+      </div>
+    </div>
+    <div class="ficha-grid">
+      <div class="ficha-main">
+        <div class="stat-card">
+          <div class="stat-grid">
+            <div class="stat"><div class="stat-l">Compra</div><div class="stat-v">${fmt(fin.compra)}</div></div>
+            <div class="stat"><div class="stat-l">Gastos</div><div class="stat-v">${fmt(fin.gastos)}</div></div>
+            <div class="stat"><div class="stat-l">Inversión</div><div class="stat-v">${fmt(fin.inversion)}</div></div>
+            <div class="stat"><div class="stat-l">${vendido?'Días en venderse':'Días en stock'}</div><div class="stat-v">${dias ?? '—'}</div></div>
+          </div>
+        </div>
+        ${vendido ? `
+        <div class="stat-card">
+          <div class="stat-grid" style="grid-template-columns:repeat(2,1fr)">
+            <div class="stat"><div class="stat-l">Venta</div><div class="stat-v">${fmt(fin.venta)}</div></div>
+            <div class="stat ganancia"><div class="stat-l">Ganancia</div><div class="stat-v ${fin.ganancia<0?'neg':''}">${fin.ganancia>=0?'+':''}${fmt(fin.ganancia)}</div></div>
+          </div>
+        </div>` : ''}
+        <div class="stat-card">
+          <div id="auto-msg"></div>
+          <div class="f-row c3">
+            <div class="f-group"><label class="f-label">Año</label><input class="f-input" id="a-anio" value="${auto.anio ?? ''}"></div>
+            <div class="f-group"><label class="f-label">Color</label><input class="f-input" id="a-color" value="${auto.color ?? ''}"></div>
+            <div class="f-group"><label class="f-label">Kilometraje</label><input class="f-input" id="a-km" value="${fmtInt(auto.kilometraje)}"></div>
+          </div>
+          <button class="btn-submit" style="max-width:220px" onclick="saveFichaAuto(${auto.id}, this)">Guardar ficha</button>
+        </div>
+        <div class="head" style="margin-top:24px;margin-bottom:12px"><h1 style="font-size:17px">Fotos</h1></div>
+        <div class="photo-grid">
+          ${autoFotos.map(f => `
+            <div class="photo-thumb">
+              <img src="${f.url}" loading="lazy">
+              <button class="del" onclick="deleteFoto(${f.id}, '${storagePathFromUrl(f.url)}')">✕</button>
+            </div>`).join('')}
+        </div>
+        <label class="file-input-label">
+          + Agregar fotos
+          <input type="file" accept="image/*" multiple style="display:none" id="foto-input" onchange="uploadFotos(${auto.id})">
+        </label>
+      </div>
+      <div class="ficha-side">
+        <button class="btn-primary" style="width:100%" onclick="openPanel('Gasto', null, ${auto.id})">+ Nuevo movimiento</button>
+        <div class="head" style="margin-top:20px;margin-bottom:10px"><h1 style="font-size:15px">Gastos</h1></div>
+        ${costosListHtml(auto.id, 480)}
+      </div>
+    </div>
+    </div>
+  `;
+  attachMontoFormatting('a-km');
+}
+function closeAuto() { selectedAutoId = null; render(); }
+
+async function saveFichaAuto(id, btn) {
+  const anio = document.getElementById('a-anio').value;
+  const color = document.getElementById('a-color').value.trim();
+  const km = document.getElementById('a-km').value;
+  const msgEl = document.getElementById('auto-msg');
+  setLoading(btn, true, 'Guardando…');
+  try {
+    const { error } = await supabaseClient.from('autos').update({
+      anio: anio ? parseInt(anio, 10) : null,
+      color: color || null,
+      kilometraje: km ? parseMonto(km) : null,
+    }).eq('id', id);
+    if (error) throw error;
+    await refreshAll();
+    openAuto(id);
+  } catch (e) {
+    msgEl.innerHTML = `<div class="msg err">Error: ${e.message || e}</div>`;
+    setLoading(btn, false);
+  }
+}
+
+function storagePathFromUrl(url) {
+  const marker = '/auto-fotos/';
+  const i = url.indexOf(marker);
+  return i === -1 ? '' : url.substring(i + marker.length);
+}
+
+async function uploadFotos(autoId) {
+  const input = document.getElementById('foto-input');
+  const files = Array.from(input.files || []);
+  if (files.length === 0) return;
+  const msgEl = document.getElementById('auto-msg');
+  if (msgEl) msgEl.innerHTML = '<div class="msg">Subiendo fotos…</div>';
+  const fallidas = await uploadFotosParaAuto(autoId, files);
+  await refreshAll();
+  openAuto(autoId);
+  if (fallidas.length) {
+    showToast(`No se pudieron subir ${fallidas.length} foto(s): ${fallidas.join(', ')}.`, 'err');
+  }
+}
+
+async function deleteFoto(fotoId, storagePath) {
+  if (!(await confirmDialog('¿Borrar esta foto? Esta acción no se puede deshacer.'))) return;
+  const msgEl = document.getElementById('auto-msg');
+  try {
+    if (storagePath) await supabaseClient.storage.from('auto-fotos').remove([storagePath]);
+    const { error } = await supabaseClient.from('auto_fotos').delete().eq('id', fotoId);
+    if (error) throw error;
+    await refreshAll();
+    openAuto(selectedAutoId);
+  } catch (e) {
+    msgEl.innerHTML = `<div class="msg err">Error: ${e.message || e}</div>`;
+  }
+}
+</script>
+</body>
+</html>
