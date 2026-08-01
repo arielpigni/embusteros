@@ -54,6 +54,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 .car-brand{font-size:28px;color:var(--text1);margin-top:1px}
 .car-plate{font-size:28px;color:var(--text1);margin-top:3px;font-family:ui-monospace,monospace}
 .car-thumb{width:64px;height:64px;border-radius:var(--radius);object-fit:cover;flex-shrink:0;margin-right:12px}
+.quick-step{padding:16px}
+.quick-step-title{font-size:24px;color:var(--text2);margin-bottom:12px}
+.quick-search{width:100%;box-sizing:border-box;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px 14px;font-size:22px;color:var(--text1);margin-bottom:12px}
+.quick-auto-item{display:flex;justify-content:space-between;align-items:center;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;cursor:pointer}
+.quick-plate{font-weight:600;margin-right:6px}
 .badge{font-size:20px;padding:5px 12px;border-radius:99px;font-weight:500;white-space:nowrap}
 .badge-stock{background:var(--blue-bg);color:var(--blue)}
 .badge-vendido{background:var(--green-bg);color:var(--green)}
@@ -357,7 +362,36 @@ function renderQuickFlow() {
   return '';
 }
 function renderQuickFotos() {
-  return `<div class="empty">Elegí un auto (próximo paso).</div>`;
+  if (quickStep === 0) return renderQuickFotosPicker();
+  return `<div class="empty">Subí las fotos (próximo paso).</div>`;
+}
+function renderQuickFotosPicker() {
+  return `<div class="quick-step">
+    <div class="quick-step-title">Elegí un auto</div>
+    <input class="quick-search" id="quick-auto-search" type="text" placeholder="Buscar por patente, marca o modelo" oninput="quickFilterAutos(this.value)" autocomplete="off">
+    <div class="quick-auto-list" id="quick-auto-list">${quickAutoListHtml('')}</div>
+  </div>`;
+}
+function quickAutoListHtml(query) {
+  const q = query.trim().toLowerCase();
+  const items = Object.values(CARS)
+    .filter(c => !q || `${c.patente} ${c.marca} ${c.modelo}`.toLowerCase().includes(q))
+    .sort((a,b) => a.patente.localeCompare(b.patente));
+  if (!items.length) return '<div class="empty">Sin resultados.</div>';
+  return items.map(c => `<div class="quick-auto-item" onclick="quickSelectAuto('${c.patente}')">
+    <span><span class="quick-plate">${c.patente}</span>${c.marca} ${c.modelo}</span>
+    <span class="badge ${c.vendido?'badge-vendido':'badge-stock'}">${c.vendido?'Vendido':'En stock'}</span>
+  </div>`).join('');
+}
+function quickFilterAutos(query) {
+  document.getElementById('quick-auto-list').innerHTML = quickAutoListHtml(query);
+}
+function quickSelectAuto(patente) {
+  quickData.patente = patente;
+  quickData.autoId = CARS[patente].autoId;
+  quickStep = 1;
+  updateBackBtn();
+  render();
 }
 
 function updateBackBtn() {
