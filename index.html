@@ -52,6 +52,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 .car-model{font-size:28px;font-weight:500;color:var(--text1);line-height:1.3}
 .car-brand{font-size:28px;color:var(--text1);margin-top:1px}
 .car-plate{font-size:28px;color:var(--text1);margin-top:3px;font-family:ui-monospace,monospace}
+.car-thumb{width:64px;height:64px;border-radius:var(--radius);object-fit:cover;flex-shrink:0;margin-left:12px}
 .badge{font-size:20px;padding:5px 12px;border-radius:99px;font-weight:500;white-space:nowrap}
 .badge-stock{background:var(--blue-bg);color:var(--blue)}
 .badge-vendido{background:var(--green-bg);color:var(--green)}
@@ -460,6 +461,7 @@ function carCard(c, isVendido) {
     : `<div><div class="car-num-label">Compra</div><div class="car-num-value">${fmtK(c.compra)}</div></div>
        <div><div class="car-num-label">Gastos</div><div class="car-num-value amber">${fmtK(c.gastos)}</div></div>
        <div style="grid-column:1/-1"><div class="car-num-label">Invertido</div><div class="car-num-value">${fmtK(c.inversion)}</div></div>`;
+  const thumb = c.fotos.length ? `<img class="car-thumb" src="${c.fotos[0]}" loading="lazy">` : '';
   return `<div class="car-card" onclick="openDetail('${c.patente}')">
     <div class="car-header">
       <div>
@@ -467,7 +469,10 @@ function carCard(c, isVendido) {
         <div class="car-brand">${c.modelo}</div>
         <div class="car-plate">${c.patente}</div>
       </div>
-      <span class="badge ${isVendido?'badge-vendido':'badge-stock'}">${isVendido?'Vendido':'En stock'}</span>
+      <div style="display:flex;align-items:center">
+        <span class="badge ${isVendido?'badge-vendido':'badge-stock'}">${isVendido?'Vendido':'En stock'}</span>
+        ${thumb}
+      </div>
     </div>
     ${fechas}
     <div class="car-numbers">${nums}</div>
