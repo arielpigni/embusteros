@@ -529,7 +529,13 @@ function renderDetail(patente) {
 // Cuando se activa una versión nueva del service worker (después de un deploy),
 // recarga automáticamente para no quedar mostrando una versión vieja cacheada.
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    // Si la app vuelve a primer plano (sin haberse cerrado del todo), revisa
+    // si hay una versión nueva en vez de esperar a la próxima apertura en frío.
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') reg.update().catch(() => {});
+    });
+  }).catch(() => {});
   let swRefreshing = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (swRefreshing) return;
