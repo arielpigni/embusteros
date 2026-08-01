@@ -200,7 +200,7 @@ function buildCars(movs) {
   const cars = {};
   movs.forEach(m => {
     const k = m.patente;
-    if (!cars[k]) cars[k] = {patente:k, marca:m.marca, modelo:m.modelo, movs:[], compra:0, gastos:0, venta:0, retiros:0, fechaCompra:null, fechaVenta:null};
+    if (!cars[k]) cars[k] = {patente:k, marca:m.marca, modelo:m.modelo, autoId:m.autoId, movs:[], compra:0, gastos:0, venta:0, retiros:0, fechaCompra:null, fechaVenta:null};
     cars[k].movs.push(m);
     if      (m.tipo === 'Compra')         { cars[k].compra  += m.valor; if (!cars[k].fechaCompra) cars[k].fechaCompra = m.fecha; }
     else if (m.tipo === 'Gasto')          { cars[k].gastos  += m.valor; }
@@ -242,7 +242,7 @@ async function loadData() {
   try {
     const { data: rows, error } = await supabaseClient
       .from('movimientos')
-      .select('tipo, fecha, valor, pagado_por, descripcion, autos(patente, marca, modelo)')
+      .select('tipo, fecha, valor, pagado_por, descripcion, autos(id, patente, marca, modelo)')
       .order('id', { ascending: true });
     if (error) throw error;
     movimientos = rows
@@ -256,8 +256,19 @@ async function loadData() {
         pagado:  r.pagado_por  || '',
         desc:    r.descripcion || '',
         valor:   parseFloat(r.valor) || 0,
+        autoId:  r.autos.id,
       }));
     CARS = buildCars(movimientos);
+    const { data: fotosRows, error: fotosError } = await supabaseClient
+      .from('auto_fotos')
+      .select('auto_id, url, created_at')
+      .order('created_at', { ascending: true });
+    if (fotosError) throw fotosError;
+    const fotosByAutoId = {};
+    (fotosRows || []).forEach(f => {
+      (fotosByAutoId[f.auto_id] ||= []).push(f.url);
+    });
+    Object.values(CARS).forEach(c => { c.fotos = fotosByAutoId[c.autoId] || []; });
     console.log('Retiros fechas:', movimientos.filter(m=>m.tipo==='Retiro de Socio').map(m=>m.fecha));
     currentTab = 'dashboard';
     document.getElementById('header-sub').textContent = 'Resumen general';
