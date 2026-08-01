@@ -34,6 +34,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 .tab-bar{display:flex;background:var(--bg1);border-bottom:0.5px solid var(--border);padding:0 8px;flex-shrink:0}
 .tab{flex:1;padding:11px 4px;font-size:26px;color:var(--text2);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;text-align:center;white-space:nowrap}
 .tab.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:500}
+.tab-plus{flex:0 0 44px;margin:6px 0 6px 6px;height:36px;align-self:center;font-size:26px;font-weight:600;color:var(--blue);background:var(--blue-bg);border:none;border-radius:10px;cursor:pointer}
 .content{flex:1;overflow-y:auto;padding:16px;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 16px);-webkit-overflow-scrolling:touch}
 .section-label{font-size:22px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin:0 0 10px}
 .metrics-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:20px}
@@ -76,6 +77,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 #photo-peek img{max-width:100%;max-height:100%;object-fit:contain}
 .photo-peek-hints{position:absolute;left:50%;bottom:30px;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
 .photo-peek-hints span{background:rgba(0,0,0,.6);color:#fff;font-size:18px;padding:6px 14px;border-radius:8px;white-space:nowrap}
+#quick-menu{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center;z-index:150}
+#quick-menu.show{display:flex}
+.quick-menu-sheet{background:var(--bg1);width:100%;max-width:480px;border-radius:16px 16px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px))}
+.quick-menu-title{font-size:24px;color:var(--text2);margin-bottom:14px}
+.quick-menu-item{display:flex;align-items:center;justify-content:space-between;padding:16px 4px;font-size:24px;color:var(--text1);border-bottom:0.5px solid var(--border);cursor:pointer}
+.quick-menu-item:last-child{border-bottom:none}
+.quick-menu-item.disabled{color:var(--text3);cursor:default}
+.quick-menu-tag{font-size:16px;color:var(--text3);background:var(--bg2);padding:3px 10px;border-radius:8px}
 .result-block{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:0.5px solid var(--border)}
 .result-block:last-child{border-bottom:none}
 .result-label{font-size:26px;color:var(--text2)}
@@ -152,6 +161,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
     <button class="tab active" onclick="showTab('dashboard')">Dashboard</button>
     <button class="tab" onclick="showTab('stock')">Stock</button>
     <button class="tab" onclick="showTab('vendidos')">Vendidos</button>
+    <button class="tab-plus" onclick="toggleQuickMenu()">+</button>
   </div>
   <div class="content" id="main-content"></div>
 </div>
@@ -299,18 +309,73 @@ async function loadData() {
 let currentTab = 'dashboard';
 let drillView  = null;
 let detailCar  = null;
+let quickMenuOpen = false;  // "+" overlay menu shown
+let quickFlow = null;       // null | 'fotos'
+let quickStep = 0;          // step index within the active flow
+let quickData = {};         // working data for the active flow
+
+function toggleQuickMenu() {
+  quickMenuOpen = !quickMenuOpen;
+  renderQuickMenu();
+}
+function closeQuickMenu() {
+  quickMenuOpen = false;
+  renderQuickMenu();
+}
+function renderQuickMenu() {
+  let overlay = document.getElementById('quick-menu');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'quick-menu';
+    overlay.onclick = (e) => { if (e.target === overlay) closeQuickMenu(); };
+    document.body.appendChild(overlay);
+  }
+  overlay.classList.toggle('show', quickMenuOpen);
+  overlay.innerHTML = `<div class="quick-menu-sheet">
+    <div class="quick-menu-title">Carga rápida</div>
+    <div class="quick-menu-item" onclick="startQuickFlow('fotos')"><span>📷 Fotos</span></div>
+    <div class="quick-menu-item disabled"><span>🛒 Compra</span><span class="quick-menu-tag">Pronto</span></div>
+    <div class="quick-menu-item disabled"><span>🎙️ Gastos</span><span class="quick-menu-tag">Pronto</span></div>
+  </div>`;
+}
+function startQuickFlow(flow) {
+  quickMenuOpen = false;
+  renderQuickMenu();
+  quickFlow = flow;
+  quickStep = 0;
+  quickData = {};
+  updateBackBtn();
+  render();
+}
+function exitQuickFlow() {
+  quickFlow = null;
+  quickStep = 0;
+  quickData = {};
+}
+function renderQuickFlow() {
+  if (quickFlow === 'fotos') return renderQuickFotos();
+  return '';
+}
+function renderQuickFotos() {
+  return `<div class="empty">Elegí un auto (próximo paso).</div>`;
+}
 
 function updateBackBtn() {
-  document.getElementById('header-back').style.display = (drillView || detailCar) ? 'inline' : 'none';
+  document.getElementById('header-back').style.display = (quickFlow || drillView || detailCar) ? 'inline' : 'none';
 }
 
 function goBack() {
+  if (quickFlow) {
+    if (quickStep > 0) { quickStep--; } else { exitQuickFlow(); }
+    updateBackBtn(); render();
+    return;
+  }
   if (detailCar) { closeDetail(); return; }
   if (drillView) { drillView = null; document.getElementById('header-sub').textContent = 'Resumen general'; updateBackBtn(); render(); }
 }
 
 function showTab(tab) {
-  currentTab = tab; drillView = null; detailCar = null;
+  currentTab = tab; drillView = null; detailCar = null; exitQuickFlow();
   document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['dashboard','stock','vendidos'][i] === tab));
   const subs = {dashboard:'Resumen general', stock:'Autos en stock', vendidos:'Autos vendidos'};
   document.getElementById('header-sub').textContent = subs[tab];
@@ -363,6 +428,7 @@ function closeDetail() {
 // ── RENDER ────────────────────────────────────────────────
 function render() {
   const el = document.getElementById('main-content');
+  if (quickFlow) { el.innerHTML = renderQuickFlow(); return; }
   if (detailCar) { el.innerHTML = renderDetail(detailCar); return; }
   if (drillView) { el.innerHTML = renderDrill(drillView);  return; }
   if (currentTab === 'dashboard') el.innerHTML = renderDashboard();
