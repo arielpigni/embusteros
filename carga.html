@@ -1155,7 +1155,7 @@ function autoCardHtml(a) {
   const thumb = foto ? `<img class="auto-thumb" src="${foto.url}" loading="lazy">` : `<div class="auto-thumb-empty">🚗</div>`;
   const { fechaCompra, fechaVenta } = fechasAuto(a.id);
   const dias = diasEntre(fechaCompra, vendido ? fechaVenta : null);
-  const diasTxt = dias === null ? '' : (vendido ? `Vendido en ${dias} día${dias===1?'':'s'}` : `${dias} día${dias===1?'':'s'} en stock`);
+  const diasTxt = dias === null ? '' : (vendido ? `Vendido el ${formatFecha(fechaVenta)} · ${dias} día${dias===1?'':'s'}` : `${dias} día${dias===1?'':'s'} en stock`);
   const metrics = vendido ? `
     <div class="auto-card-metric"><div class="l">Venta</div><div class="v">${fmt(fin.venta)}</div></div>
     <div class="auto-card-metric"><div class="l">Ganancia</div><div class="v ${fin.ganancia<0?'neg':'pos'}">${fin.ganancia>=0?'+':''}${fmt(fin.ganancia)}</div></div>
@@ -1181,6 +1181,11 @@ function renderAutos() {
     if (filtroAutoEstado === 'Todos') return true;
     const vendido = finanzasAuto(a.id).venta > 0;
     return filtroAutoEstado === 'Vendidos' ? vendido : !vendido;
+  }).slice().sort((a, b) => {
+    const porVenta = filtroAutoEstado === 'Vendidos';
+    const fA = porVenta ? fechasAuto(a.id).fechaVenta : fechasAuto(a.id).fechaCompra;
+    const fB = porVenta ? fechasAuto(b.id).fechaVenta : fechasAuto(b.id).fechaCompra;
+    return new Date(fA || 0) - new Date(fB || 0);
   });
   c.innerHTML = `
     <div class="head"><div><h1>Autos</h1><p>${autos.length} autos cargados</p></div></div>
