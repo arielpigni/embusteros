@@ -266,11 +266,12 @@ async function loadData() {
       .from('auto_fotos')
       .select('auto_id, url, created_at')
       .order('created_at', { ascending: true });
-    if (fotosError) throw fotosError;
     const fotosByAutoId = {};
-    (fotosRows || []).forEach(f => {
-      (fotosByAutoId[f.auto_id] ||= []).push(f.url);
-    });
+    if (!fotosError) {
+      (fotosRows || []).forEach(f => {
+        (fotosByAutoId[f.auto_id] ||= []).push(f.url);
+      });
+    }
     Object.values(CARS).forEach(c => { c.fotos = fotosByAutoId[c.autoId] || []; });
     console.log('Retiros fechas:', movimientos.filter(m=>m.tipo==='Retiro de Socio').map(m=>m.fecha));
     currentTab = 'dashboard';
