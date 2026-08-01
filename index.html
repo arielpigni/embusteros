@@ -58,6 +58,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 .quick-step-title{font-size:24px;color:var(--text2);margin-bottom:12px}
 .quick-search{width:100%;box-sizing:border-box;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px 14px;font-size:22px;color:var(--text1);margin-bottom:12px}
 .quick-auto-item{display:flex;justify-content:space-between;align-items:center;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;cursor:pointer}
+.quick-file-input{width:100%;margin-bottom:12px;font-size:18px;color:var(--text2)}
+.quick-submit-btn{width:100%;background:var(--blue-bg);color:var(--blue);border:none;border-radius:var(--radius);padding:14px;font-size:22px;font-weight:500;cursor:pointer}
 .quick-plate{font-weight:600;margin-right:6px}
 .badge{font-size:20px;padding:5px 12px;border-radius:99px;font-weight:500;white-space:nowrap}
 .badge-stock{background:var(--blue-bg);color:var(--blue)}
@@ -357,13 +359,81 @@ function exitQuickFlow() {
   quickStep = 0;
   quickData = {};
 }
+
+// Algunos archivos (ej. fotos de iCloud no descargadas del todo) reportan un tamaño
+// correcto pero todavía no tienen contenido real disponible. Reintenta leerlos antes
+// de subir, dándole tiempo al sistema operativo a terminar de bajarlos.
+async function readFileWithRetry(file, attempts = 5, delayMs = 1000) {
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const buf = await file.arrayBuffer();
+      if (buf && buf.byteLength > 0) return buf;
+    } catch (e) { /* reintenta */ }
+    if (i < attempts - 1) await new Promise(r => setTimeout(r, delayMs));
+  }
+  return null;
+}
+
+// Sube las fotos que puede; las que fallan (ej. no terminaron de descargarse) se omiten
+// sin cortar el resto. Devuelve los nombres de las que no se pudieron subir.
+async function uploadFotosParaAuto(autoId, files) {
+  const fallidas = [];
+  for (const file of Array.from(files)) {
+    if (!file) continue;
+    const buf = await readFileWithRetry(file);
+    if (!buf) { fallidas.push(file.name); continue; }
+    const path = `${autoId}/${Date.now()}-${file.name}`;
+    const { error: eUp } = await supabaseClient.storage.from('auto-fotos').upload(path, buf, { contentType: file.type || 'image/jpeg' });
+    if (eUp) { fallidas.push(file.name); continue; }
+    const { data: pub } = supabaseClient.storage.from('auto-fotos').getPublicUrl(path);
+    const { error: eIns } = await supabaseClient.from('auto_fotos').insert({ auto_id: autoId, url: pub.publicUrl });
+    if (eIns) fallidas.push(file.name);
+  }
+  return fallidas;
+}
+
 function renderQuickFlow() {
   if (quickFlow === 'fotos') return renderQuickFotos();
   return '';
 }
 function renderQuickFotos() {
   if (quickStep === 0) return renderQuickFotosPicker();
-  return `<div class="empty">Subí las fotos (próximo paso).</div>`;
+  return renderQuickFotosUpload();
+}
+function renderQuickFotosUpload() {
+  const c = CARS[quickData.patente];
+  return `<div class="quick-step">
+    <div class="quick-step-title">${c.marca} ${c.modelo} · ${c.patente}</div>
+    <input type="file" accept="image/*" multiple id="quick-foto-input" class="quick-file-input">
+    <button class="quick-submit-btn" onclick="quickUploadFotos()">Subir fotos</button>
+    <div id="quick-foto-msg" style="margin-top:12px;font-size:20px;color:var(--text2)"></div>
+  </div>`;
+}
+async function quickRefreshFotos(autoId) {
+  const { data, error } = await supabaseClient
+    .from('auto_fotos')
+    .select('url')
+    .eq('auto_id', autoId)
+    .order('created_at', { ascending: true });
+  if (!error) {
+    const c = Object.values(CARS).find(c => c.autoId === autoId);
+    if (c) c.fotos = (data || []).map(f => f.url);
+  }
+}
+async function quickUploadFotos() {
+  const input = document.getElementById('quick-foto-input');
+  const msgEl = document.getElementById('quick-foto-msg');
+  if (!input.files || !input.files.length) { msgEl.textContent = 'Elegí al menos una foto.'; return; }
+  msgEl.textContent = 'Subiendo…';
+  const fallidas = await uploadFotosParaAuto(quickData.autoId, input.files);
+  await quickRefreshFotos(quickData.autoId);
+  if (fallidas.length) {
+    document.getElementById('quick-foto-msg').textContent = `No se pudieron subir ${fallidas.length} foto(s): ${fallidas.join(', ')}. Podés reintentar desde acá.`;
+    return;
+  }
+  const patente = quickData.patente;
+  exitQuickFlow();
+  openDetail(patente);
 }
 function renderQuickFotosPicker() {
   return `<div class="quick-step">
