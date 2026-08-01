@@ -526,8 +526,16 @@ function renderDetail(patente) {
 }
 
 // ── SERVICE WORKER ────────────────────────────────────────
+// Cuando se activa una versión nueva del service worker (después de un deploy),
+// recarga automáticamente para no quedar mostrando una versión vieja cacheada.
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
+  let swRefreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (swRefreshing) return;
+    swRefreshing = true;
+    location.reload();
+  });
 }
 </script>
 </body>
