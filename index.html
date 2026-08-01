@@ -405,7 +405,7 @@ function renderQuickFotosUpload() {
   return `<div class="quick-step">
     <div class="quick-step-title">${c.marca} ${c.modelo} · ${c.patente}</div>
     <input type="file" accept="image/*" multiple id="quick-foto-input" class="quick-file-input">
-    <button class="quick-submit-btn" onclick="quickUploadFotos()">Subir fotos</button>
+    <button class="quick-submit-btn" onclick="quickUploadFotos(this)">Subir fotos</button>
     <div id="quick-foto-msg" style="margin-top:12px;font-size:20px;color:var(--text2)"></div>
   </div>`;
 }
@@ -420,18 +420,25 @@ async function quickRefreshFotos(autoId) {
     if (c) c.fotos = (data || []).map(f => f.url);
   }
 }
-async function quickUploadFotos() {
+async function quickUploadFotos(btn) {
   const input = document.getElementById('quick-foto-input');
   const msgEl = document.getElementById('quick-foto-msg');
   if (!input.files || !input.files.length) { msgEl.textContent = 'Elegí al menos una foto.'; return; }
+  const autoId = quickData.autoId;
+  const patente = quickData.patente;
+  btn.disabled = true;
   msgEl.textContent = 'Subiendo…';
-  const fallidas = await uploadFotosParaAuto(quickData.autoId, input.files);
-  await quickRefreshFotos(quickData.autoId);
+  const fallidas = await uploadFotosParaAuto(autoId, input.files);
+  await quickRefreshFotos(autoId);
+  // El usuario pudo haberse ido de esta pantalla mientras subía (otra tab, ↻, "+" de nuevo).
+  // loadData() no resetea quickFlow/quickData, así que no alcanza con chequear esas variables:
+  // confirmamos que el DOM de esta pantalla siga presente antes de tocarlo o navegar.
+  if (!document.body.contains(msgEl) || quickData.patente !== patente) return;
   if (fallidas.length) {
-    document.getElementById('quick-foto-msg').textContent = `No se pudieron subir ${fallidas.length} foto(s): ${fallidas.join(', ')}. Podés reintentar desde acá.`;
+    msgEl.textContent = `No se pudieron subir ${fallidas.length} foto(s): ${fallidas.join(', ')}. Podés reintentar desde acá.`;
+    btn.disabled = false;
     return;
   }
-  const patente = quickData.patente;
   exitQuickFlow();
   openDetail(patente);
 }
