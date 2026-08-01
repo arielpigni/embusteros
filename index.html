@@ -57,10 +57,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 .quick-step{padding:16px}
 .quick-step-title{font-size:24px;color:var(--text2);margin-bottom:12px}
 .quick-search{width:100%;box-sizing:border-box;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px 14px;font-size:22px;color:var(--text1);margin-bottom:12px}
-.quick-auto-item{display:flex;justify-content:space-between;align-items:center;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;cursor:pointer}
-.quick-file-input{width:100%;margin-bottom:12px;font-size:18px;color:var(--text2)}
+.quick-auto-item{display:flex;flex-direction:column;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;cursor:pointer}
 .quick-submit-btn{width:100%;background:var(--blue-bg);color:var(--blue);border:none;border-radius:var(--radius);padding:14px;font-size:22px;font-weight:500;cursor:pointer}
-.quick-plate{font-weight:600;margin-right:6px}
+.quick-foto-thumbs{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+.quick-foto-thumb{position:relative;width:72px;height:72px}
+.quick-foto-thumb img{width:100%;height:100%;object-fit:cover;border-radius:var(--radius)}
+.quick-foto-thumb-x{position:absolute;top:-6px;right:-6px;width:24px;height:24px;background:var(--red);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer}
+.quick-auto-plate{font-weight:600;font-size:26px;color:var(--text1)}
+.quick-auto-model{font-size:24px;color:var(--text2);margin-top:2px}
 .badge{font-size:20px;padding:5px 12px;border-radius:99px;font-weight:500;white-space:nowrap}
 .badge-stock{background:var(--blue-bg);color:var(--blue)}
 .badge-vendido{background:var(--green-bg);color:var(--green)}
@@ -87,11 +91,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 #quick-menu{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center;z-index:150}
 #quick-menu.show{display:flex}
 .quick-menu-sheet{background:var(--bg1);width:100%;max-width:480px;border-radius:16px 16px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px))}
-.quick-menu-title{font-size:24px;color:var(--text2);margin-bottom:14px}
-.quick-menu-item{display:flex;align-items:center;justify-content:space-between;padding:16px 4px;font-size:24px;color:var(--text1);border-bottom:0.5px solid var(--border);cursor:pointer}
+.quick-menu-title{font-size:26px;color:var(--text2);margin-bottom:14px}
+.quick-menu-item{display:flex;align-items:center;justify-content:space-between;padding:18px 4px;font-size:28px;color:var(--text1);border-bottom:0.5px solid var(--border);cursor:pointer}
 .quick-menu-item:last-child{border-bottom:none}
 .quick-menu-item.disabled{color:var(--text3);cursor:default}
-.quick-menu-tag{font-size:16px;color:var(--text3);background:var(--bg2);padding:3px 10px;border-radius:8px}
+.quick-menu-left{display:flex;align-items:center;gap:14px}
+.quick-menu-icon{display:flex;color:var(--blue)}
+.quick-menu-item.disabled .quick-menu-icon{color:var(--text3)}
+.quick-menu-tag{font-size:18px;color:var(--text3);background:var(--bg2);padding:3px 10px;border-radius:8px}
 .result-block{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:0.5px solid var(--border)}
 .result-block:last-child{border-bottom:none}
 .result-label{font-size:26px;color:var(--text2)}
@@ -337,12 +344,23 @@ function renderQuickMenu() {
     overlay.onclick = (e) => { if (e.target === overlay) closeQuickMenu(); };
     document.body.appendChild(overlay);
   }
+  const iconCamara = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>';
+  const iconCarrito = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>';
+  const iconMic = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>';
   overlay.classList.toggle('show', quickMenuOpen);
   overlay.innerHTML = `<div class="quick-menu-sheet">
     <div class="quick-menu-title">Carga rápida</div>
-    <div class="quick-menu-item" onclick="startQuickFlow('fotos')"><span>📷 Fotos</span></div>
-    <div class="quick-menu-item disabled"><span>🛒 Compra</span><span class="quick-menu-tag">Pronto</span></div>
-    <div class="quick-menu-item disabled"><span>🎙️ Gastos</span><span class="quick-menu-tag">Pronto</span></div>
+    <div class="quick-menu-item" onclick="startQuickFlow('fotos')">
+      <span class="quick-menu-left"><span class="quick-menu-icon">${iconCamara}</span><span>Fotos</span></span>
+    </div>
+    <div class="quick-menu-item disabled">
+      <span class="quick-menu-left"><span class="quick-menu-icon">${iconCarrito}</span><span>Compra</span></span>
+      <span class="quick-menu-tag">Pronto</span>
+    </div>
+    <div class="quick-menu-item disabled">
+      <span class="quick-menu-left"><span class="quick-menu-icon">${iconMic}</span><span>Gastos</span></span>
+      <span class="quick-menu-tag">Pronto</span>
+    </div>
   </div>`;
 }
 function startQuickFlow(flow) {
@@ -358,6 +376,7 @@ function exitQuickFlow() {
   quickFlow = null;
   quickStep = 0;
   quickData = {};
+  quickSelectedFiles = [];
 }
 
 // Algunos archivos (ej. fotos de iCloud no descargadas del todo) reportan un tamaño
@@ -400,14 +419,36 @@ function renderQuickFotos() {
   if (quickStep === 0) return renderQuickFotosPicker();
   return renderQuickFotosUpload();
 }
+let quickSelectedFiles = [];
 function renderQuickFotosUpload() {
   const c = CARS[quickData.patente];
   return `<div class="quick-step">
     <div class="quick-step-title">${c.marca} ${c.modelo} · ${c.patente}</div>
-    <input type="file" accept="image/*" multiple id="quick-foto-input" class="quick-file-input">
-    <button class="quick-submit-btn" onclick="quickUploadFotos(this)">Subir fotos</button>
+    <input type="file" accept="image/*" multiple id="quick-foto-input" style="display:none" onchange="quickAddFotos()">
+    <label for="quick-foto-input" class="quick-submit-btn" style="display:block;text-align:center;margin-bottom:8px">Elegir fotos</label>
+    <div class="quick-foto-thumbs" id="quick-foto-thumbs">${quickFotoThumbsHtml()}</div>
+    <button class="quick-submit-btn" onclick="quickUploadFotos(this)">Confirmar fotos</button>
     <div id="quick-foto-msg" style="margin-top:12px;font-size:20px;color:var(--text2)"></div>
   </div>`;
+}
+function quickFotoThumbsHtml() {
+  return quickSelectedFiles.map((f, i) => `<div class="quick-foto-thumb">
+    <img src="${URL.createObjectURL(f)}">
+    <span class="quick-foto-thumb-x" onclick="quickRemoveFoto(${i})">✕</span>
+  </div>`).join('');
+}
+function quickAddFotos() {
+  const input = document.getElementById('quick-foto-input');
+  Array.from(input.files || []).forEach(f => {
+    const yaEsta = quickSelectedFiles.some(x => x.name === f.name && x.size === f.size && x.lastModified === f.lastModified);
+    if (!yaEsta) quickSelectedFiles.push(f);
+  });
+  input.value = ''; // permite volver a elegir/sacar otra foto sin que el navegador la ignore por "mismo valor"
+  document.getElementById('quick-foto-thumbs').innerHTML = quickFotoThumbsHtml();
+}
+function quickRemoveFoto(index) {
+  quickSelectedFiles.splice(index, 1);
+  document.getElementById('quick-foto-thumbs').innerHTML = quickFotoThumbsHtml();
 }
 async function quickRefreshFotos(autoId) {
   const { data, error } = await supabaseClient
@@ -421,14 +462,14 @@ async function quickRefreshFotos(autoId) {
   }
 }
 async function quickUploadFotos(btn) {
-  const input = document.getElementById('quick-foto-input');
   const msgEl = document.getElementById('quick-foto-msg');
-  if (!input.files || !input.files.length) { msgEl.textContent = 'Elegí al menos una foto.'; return; }
+  if (!quickSelectedFiles.length) { msgEl.textContent = 'Elegí al menos una foto.'; return; }
   const autoId = quickData.autoId;
   const patente = quickData.patente;
+  const files = quickSelectedFiles;
   btn.disabled = true;
   msgEl.textContent = 'Subiendo…';
-  const fallidas = await uploadFotosParaAuto(autoId, input.files);
+  const fallidas = await uploadFotosParaAuto(autoId, files);
   await quickRefreshFotos(autoId);
   // El usuario pudo haberse ido de esta pantalla mientras subía (otra tab, ↻, "+" de nuevo).
   // loadData() no resetea quickFlow/quickData, así que no alcanza con chequear esas variables:
@@ -452,12 +493,13 @@ function renderQuickFotosPicker() {
 function quickAutoListHtml(query) {
   const q = query.trim().toLowerCase();
   const items = Object.values(CARS)
+    .filter(c => !c.vendido)
     .filter(c => !q || `${c.patente} ${c.marca} ${c.modelo}`.toLowerCase().includes(q))
     .sort((a,b) => a.patente.localeCompare(b.patente));
   if (!items.length) return '<div class="empty">Sin resultados.</div>';
   return items.map(c => `<div class="quick-auto-item" onclick="quickSelectAuto('${c.patente}')">
-    <span><span class="quick-plate">${c.patente}</span>${c.marca} ${c.modelo}</span>
-    <span class="badge ${c.vendido?'badge-vendido':'badge-stock'}">${c.vendido?'Vendido':'En stock'}</span>
+    <div class="quick-auto-plate">${c.patente}</div>
+    <div class="quick-auto-model">${c.marca} ${c.modelo}</div>
   </div>`).join('');
 }
 function quickFilterAutos(query) {
@@ -467,6 +509,7 @@ function quickSelectAuto(patente) {
   quickData.patente = patente;
   quickData.autoId = CARS[patente].autoId;
   quickStep = 1;
+  quickSelectedFiles = [];
   updateBackBtn();
   render();
 }
