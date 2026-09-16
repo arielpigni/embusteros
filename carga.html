@@ -851,7 +851,7 @@ function ventaStatHtml(fin, ganancia, auto) {
 function ventaForm(editing) {
   const a = editing ? autos.find(x => x.id === editing.auto_id) : (presetAutoId ? autos.find(x => x.id === presetAutoId) : null);
   const fin = a ? finanzasAuto(a.id) : null;
-  const gananciaInicial = a ? (editing.valor - fin.inversion) : null;
+  const gananciaInicial = (a && editing) ? (editing.valor - fin.inversion) : null;
   return `
     <div class="f-group combo-wrap"><label class="f-label">Auto</label>
       <input class="f-input" id="f-auto" data-auto-id="${a?a.id:''}" value="${a?autoLabel(a):''}" placeholder="Buscar por patente, marca o modelo…" autocomplete="off" oninput="onComboInput('venta')" onfocus="onComboFocus('venta')">
